@@ -1,0 +1,109 @@
+<div class="pokemon-page">
+  <!-- Barra de generaciones -->
+  <div class="generations-bar">
+    <div class="generations-container">
+      <h2>Generaciones</h2>
+      <div class="generations-list">
+        @for (gen of generations; track gen.number) {
+          <button
+            class="gen-button"
+            [class.active]="selectedGeneration === gen.number"
+            (click)="selectGeneration(gen.number)"
+          >
+            {{ gen.name }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="pokemon-content">
+    <!-- Loading personalizado -->
+    @if (loadingState$ | async; as loadingState) {
+      @if (loadingState.isLoading && !loadingState.showOverlay) {
+        <div class="pokemon-loading">
+          <app-loading
+            [message]="loadingState.message || 'Cargando Pokemon...'"
+            [subMessage]="loadingState.subMessage || '¡Explorando el mundo Pokemon!'"
+            [showOverlay]="false">
+          </app-loading>
+        </div>
+      }
+    }
+
+    @if (error) {
+      <div class="error">
+        <p>{{ error }}</p>
+      </div>
+    } @else if (!loading) {
+      <!-- Grid de Pokemon -->
+      <div class="pokemon-grid">
+        @for (pokemon of pokemonList; track pokemon.id) {
+          <div class="pokemon-card">
+            <div class="pokemon-sprite">
+              <img [src]="pokemon.sprites.front_default" [alt]="pokemon.name" />
+            </div>
+            <div class="pokemon-info">
+              <h3 class="pokemon-name">{{ pokemon.name | titlecase }}</h3>
+              <div class="pokemon-types">
+                @for (type of pokemon.types; track type.type.name) {
+                  <span class="type-badge" [class]="'type-' + type.type.name">
+                    {{ type.type.name }}
+                  </span>
+                }
+              </div>
+              <div class="pokemon-abilities">
+                <p><strong>Habilidades:</strong></p>
+                @for (ability of pokemon.abilities; track ability.ability.name) {
+                  <span class="ability">{{ ability.ability.name | titlecase }}</span>
+                }
+              </div>
+            </div>
+            <!-- Estadísticas en hover -->
+            <div class="pokemon-stats">
+              <h4>Estadísticas Base</h4>
+              @for (stat of pokemon.stats; track stat.stat.name) {
+                <div class="stat-item">
+                  <span class="stat-name">{{ getStatName(stat.stat.name) }}</span>
+                  <span class="stat-value">{{ stat.base_stat }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Paginación -->
+      @if (totalPages > 1) {
+        <div class="pagination">
+          <button
+            class="page-btn"
+            [disabled]="currentPage === 1"
+            (click)="changePage(currentPage - 1)"
+          >
+            Anterior
+          </button>
+
+          @for (page of getPageArray(); track page) {
+            <button
+              class="page-btn"
+              [class.active]="currentPage === page"
+              (click)="changePage(page)"
+            >
+              {{ page }}
+            </button>
+          }
+
+          <button
+            class="page-btn"
+            [disabled]="currentPage === totalPages"
+            (click)="changePage(currentPage + 1)"
+          >
+            Siguiente
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>

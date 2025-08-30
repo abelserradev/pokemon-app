@@ -1,0 +1,164 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule, AsyncPipe } from '@angular/common';
+import { Observable } from 'rxjs';
+import { firstValueFrom, catchError, of, Subscription } from 'rxjs';
+import { PokemonService, Pokemon } from '../../services/pokemon.service';
+import { PokemonCacheService } from '../../services/pokemon-cache.service';
+import { LoadingService, LoadingState } from '../../services/loading.service';
+import { LoadingComponent } from '../../components/loading/loading';
+
+
+@Component({
+  selector: 'app-pokemon',
+  standalone: true,
+  imports: [CommonModule, AsyncPipe, LoadingComponent],
+  templateUrl: './pokemon.html',
+  styleUrl: './pokemon.scss'
+})
+
+export class PokemonComponent implements OnInit, OnDestroy {
+  generations = [
+    { number: 1, name: 'Gen 1', start: 1, end: 151 },
+    { number: 2, name: 'Gen 2', start: 152, end: 251 },
+    { number: 3, name: 'Gen 3', start: 252, end: 386 },
+    { number: 4, name: 'Gen 4', start: 387, end: 493 },
+    { number: 5, name: 'Gen 5', start: 494, end: 649 },
+    { number: 6, name: 'Gen 6', start: 650, end: 721 },
+    { number: 7, name: 'Gen 7', start: 722, end: 809 },
+    { number: 8, name: 'Gen 8', start: 810, end: 898 },
+    { number: 9, name: 'Gen 9', start: 899, end: 1025 },
+    { number: 10, name: 'Gen 10', start: 1026, end: 1025 }
+  ];
+
+  selectedGeneration = 1;
+  currentPage = 1;
+  pokemonList: Pokemon[] = [];
+  loading = false;
+  error: string | null = null;
+  totalPages = 0;
+  pokemonPerPage = 20;
+  loadingState$!: Observable<LoadingState>;
+  private subscriptions = new Subscription();
+
+  constructor(
+    private pokemonService: PokemonService,
+    private cacheService: PokemonCacheService,
+    private loadingService: LoadingService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadingState$ = this.loadingService.loading$;
+
+    // Suscribirse a cambios de generación y página
+    this.subscriptions.add(
+      this.cacheService.getCurrentGeneration().subscribe(gen => {
+        if (gen !== this.selectedGeneration) {
+          this.selectedGeneration = gen;
+          this.currentPage = 1;
+          this.loadPokemon();
+        }
+      })
+    );
+
+    this.subscriptions.add(
+      this.cacheService.getCurrentPage().subscribe(page => {
+        if (page !== this.currentPage) {
+          this.currentPage = page;
+          this.loadPokemon();
+        }
+      })
+    );
+
+    // Cargar datos iniciales
+    this.loadPokemon();
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
+  // Método para generar el array de páginas
+  getPageArray(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  async selectGeneration(generation: number): Promise<void> {
+    this.selectedGeneration = generation;
+    this.currentPage = 1;
+    this.cacheService.setCurrentGeneration(generation);
+    this.cacheService.setCurrentPage(1);
+    await this.loadPokemon();
+  }
+
+  async changePage(page: number): Promise<void> {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.cacheService.setCurrentPage(page);
+      await this.loadPokemon();
+    }
+  }
+
+  private async loadPokemon(): Promise<void> {
+    const gen = this.generations.find(g => g.number === this.selectedGeneration);
+    if (!gen) return;
+
+    // Verificar si existe en caché
+    if (this.cacheService.hasPokemon(this.selectedGeneration, this.currentPage)) {
+      this.pokemonList = this.cacheService.getPokemon(this.selectedGeneration, this.currentPage)!;
+      this.calculateTotalPages(gen.end - gen.start + 1);
+      return;
+    }
+
+    this.loading = true;
+    this.error = null;
+    this.loadingService.show('Cargando Pokemon...', '¡Explorando la generación ' + this.selectedGeneration + '!', false);
+
+    try {
+      const startId = gen.start + (this.currentPage - 1) * this.pokemonPerPage;
+      const endId = Math.min(startId + this.pokemonPerPage - 1, gen.end);
+
+      const pokemonIds = Array.from(
+        { length: endId - startId + 1 },
+        (_, i) => startId + i
+      );
+
+      const pokemonPromises = pokemonIds.map(id =>
+        firstValueFrom(
+          this.pokemonService.getPokemonById(id).pipe(
+            catchError(() => of(null))
+          )
+        )
+      );
+
+      const results = await Promise.all(pokemonPromises);
+      this.pokemonList = results.filter(p => p !== null) as Pokemon[];
+
+      // Guardar en caché
+      this.cacheService.setPokemon(this.selectedGeneration, this.currentPage, this.pokemonList);
+
+      this.calculateTotalPages(gen.end - gen.start + 1);
+    } catch (error) {
+      this.error = 'Error al cargar los Pokemon';
+      console.error('Error loading Pokemon:', error);
+    } finally {
+      this.loading = false;
+      this.loadingService.hide();
+    }
+  }
+
+  private calculateTotalPages(totalPokemon: number): void {
+    this.totalPages = Math.ceil(totalPokemon / this.pokemonPerPage);
+  }
+
+  getStatName(statName: string): string {
+    const statNames: { [key: string]: string } = {
+      'hp': 'HP',
+      'attack': 'Ataque',
+      'defense': 'Defensa',
+      'special-attack': 'Ataque Especial',
+      'special-defense': 'Defensa Especial',
+      'speed': 'Velocidad'
+    };
+    return statNames[statName] || statName;
+  }
+}

@@ -1,0 +1,307 @@
+<div class="training-page">
+  <!-- Loading -->
+  @if (loadingState$ | async; as loadingState) {
+    @if (loadingState.isLoading && !loadingState.showOverlay) {
+      <div class="training-loading">
+        <app-loading
+          [message]="loadingState.message || 'Entrenando...'"
+          [subMessage]="loadingState.subMessage || '¡Mejorando estadísticas!'"
+          [showOverlay]="false">
+        </app-loading>
+      </div>
+    }
+  }
+
+  <!-- Header -->
+  <div class="training-header">
+    <h1>Centro de Entrenamiento Pokemon</h1>
+    <p>Entrena a tu equipo para maximizar sus estadísticas con EVs</p>
+  </div>
+
+  @if (teamPokemon.length === 0) {
+    <!-- Equipo vacío -->
+    <div class="empty-team">
+      <div class="empty-icon">🏋️</div>
+      <h2>No hay Pokemon para entrenar</h2>
+      <p>Ve al equipo y agrega Pokemon para comenzar el entrenamiento</p>
+      <a routerLink="/entrenamiento" class="btn-primary">Ir al Equipo</a>
+    </div>
+  } @else {
+    <!-- Navegación de Pokemon -->
+    <div class="pokemon-navigation">
+      <div class="nav-container">
+        @for (session of trainingSessions; track session.pokemonId; let i = $index) {
+          <button
+            class="pokemon-nav-item"
+            [class.active]="i === currentPokemonIndex"
+            [class.trained]="isPokemonTrained(i)"
+            (click)="goToPokemon(i)"
+          >
+            <img [src]="session.pokemonSprite" [alt]="session.pokemonName" />
+            <span class="pokemon-name">{{ session.pokemonName | titlecase }}</span>
+            @if (isPokemonTrained(i)) {
+              <span class="trained-badge">✓</span>
+            }
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (currentSession) {
+      <!-- Contenido principal -->
+      <div class="training-content">
+        <!-- Información del Pokemon -->
+        <div class="pokemon-info-section">
+          <div class="pokemon-card">
+            <div class="pokemon-sprite">
+              <img [src]="currentSession.pokemonSprite" [alt]="currentSession.pokemonName" />
+            </div>
+            <div class="pokemon-details">
+              <h2>{{ currentSession.pokemonName | titlecase }}</h2>
+              <div class="pokemon-types">
+                @for (type of currentSession.pokemonTypes; track type) {
+                  <span class="type-badge" [class]="'type-' + type">
+                    {{ type }}
+                  </span>
+                }
+              </div>
+              <div class="training-status">
+                <p><strong>EVs Restantes:</strong> {{ currentSession.trainingPoints }}</p>
+                @if (currentSession.isCompleted) {
+                  <p class="completed-status">✓ Entrenamiento Completado</p>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formulario de entrenamiento -->
+        <div class="training-form-section">
+          <h3>Asignar EVs</h3>
+          <p class="form-description">
+            Distribuye hasta {{ currentSession.trainingPoints }} EVs entre las estadísticas.
+            Máximo 252 EVs por estadística.
+          </p>
+
+          <form [formGroup]="trainingForm" class="training-form">
+            <div class="stats-grid">
+              <!-- HP -->
+              <div class="stat-column">
+                <label class="stat-label">
+                  <span class="stat-name">HP</span>
+                  <span class="stat-base">Base: {{ currentSession.baseStats.hp }}</span>
+                </label>
+                <input
+                  type="number"
+                  formControlName="hp"
+                  class="stat-input"
+                  min="0"
+                  max="252"
+                  placeholder="0"
+                />
+                <div class="ev-progress">
+                  <div class="progress-bar">
+                    <div
+                      class="progress-fill"
+                      [class]="getProgressClass(getEVProgress(currentSession.currentEVs.hp, 252))"
+                      [style.width.%]="getEVProgress(currentSession.currentEVs.hp, 252)"
+                    ></div>
+                  </div>
+                  <span class="ev-current">{{ currentSession.currentEVs.hp }}/252</span>
+                </div>
+              </div>
+
+              <!-- Ataque -->
+              <div class="stat-column">
+                <label class="stat-label">
+                  <span class="stat-name">Ataque</span>
+                  <span class="stat-base">Base: {{ currentSession.baseStats.attack }}</span>
+                </label>
+                <input
+                  type="number"
+                  formControlName="attack"
+                  class="stat-input"
+                  min="0"
+                  max="252"
+                  placeholder="0"
+                />
+                <div class="ev-progress">
+                  <div class="progress-bar">
+                    <div
+                      class="progress-fill"
+                      [class]="getProgressClass(getEVProgress(currentSession.currentEVs.attack, 252))"
+                      [style.width.%]="getEVProgress(currentSession.currentEVs.attack, 252)"
+                    ></div>
+                  </div>
+                  <span class="ev-current">{{ currentSession.currentEVs.attack }}/252</span>
+                </div>
+              </div>
+
+              <!-- Defensa -->
+              <div class="stat-column">
+                <label class="stat-label">
+                  <span class="stat-name">Defensa</span>
+                  <span class="stat-base">Base: {{ currentSession.baseStats.defense }}</span>
+                </label>
+                <input
+                  type="number"
+                  formControlName="defense"
+                  class="stat-input"
+                  min="0"
+                  max="252"
+                  placeholder="0"
+                />
+                <div class="ev-progress">
+                  <div class="progress-bar">
+                    <div
+                      class="progress-fill"
+                      [class]="getProgressClass(getEVProgress(currentSession.currentEVs.defense, 252))"
+                      [style.width.%]="getEVProgress(currentSession.currentEVs.defense, 252)"
+                    ></div>
+                  </div>
+                  <span class="ev-current">{{ currentSession.currentEVs.defense }}/252</span>
+                </div>
+              </div>
+
+              <!-- Ataque Especial -->
+              <div class="stat-column">
+                <label class="stat-label">
+                  <span class="stat-name">Ataque Especial</span>
+                  <span class="stat-base">Base: {{ currentSession.baseStats.specialAttack }}</span>
+                </label>
+                <input
+                  type="number"
+                  formControlName="specialAttack"
+                  class="stat-input"
+                  min="0"
+                  max="252"
+                  placeholder="0"
+                />
+                <div class="ev-progress">
+                  <div class="progress-bar">
+                    <div
+                      class="progress-fill"
+                      [class]="getProgressClass(getEVProgress(currentSession.currentEVs.specialAttack, 252))"
+                      [style.width.%]="getEVProgress(currentSession.currentEVs.specialAttack, 252)"
+                    ></div>
+                  </div>
+                  <span class="ev-current">{{ currentSession.currentEVs.specialAttack }}/252</span>
+                </div>
+              </div>
+
+              <!-- Defensa Especial -->
+              <div class="stat-column">
+                <label class="stat-label">
+                  <span class="stat-name">Defensa Especial</span>
+                  <span class="stat-base">Base: {{ currentSession.baseStats.specialDefense }}</span>
+                </label>
+                <input
+                  type="number"
+                  formControlName="specialDefense"
+                  class="stat-input"
+                  min="0"
+                  max="252"
+                  placeholder="0"
+                />
+                <div class="ev-progress">
+                  <div class="progress-bar">
+                    <div
+                      class="progress-fill"
+                      [class]="getProgressClass(getEVProgress(currentSession.currentEVs.specialDefense, 252))"
+                      [style.width.%]="getEVProgress(currentSession.currentEVs.specialDefense, 252)"
+                    ></div>
+                  </div>
+                  <span class="ev-current">{{ currentSession.currentEVs.specialDefense }}/252</span>
+                </div>
+              </div>
+
+              <!-- Velocidad -->
+              <div class="stat-column">
+                <label class="stat-label">
+                  <span class="stat-name">Velocidad</span>
+                  <span class="stat-base">Base: {{ currentSession.baseStats.speed }}</span>
+                </label>
+                <input
+                  type="number"
+                  formControlName="speed"
+                  class="stat-input"
+                  min="0"
+                  max="252"
+                  placeholder="0"
+                />
+                <div class="ev-progress">
+                  <div class="progress-bar">
+                    <div
+                      class="progress-fill"
+                      [class]="getProgressClass(getEVProgress(currentSession.currentEVs.speed, 252))"
+                      [style.width.%]="getEVProgress(currentSession.currentEVs.speed, 252)"
+                    ></div>
+                  </div>
+                  <span class="ev-current">{{ currentSession.currentEVs.speed }}/252</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Validación y resumen -->
+            @if (validation) {
+              <div class="validation-section">
+                @if (validation.errors.length > 0) {
+                  <div class="validation-errors">
+                    @for (error of validation.errors; track error) {
+                      <p class="error-message">{{ error }}</p>
+                    }
+                  </div>
+                }
+                <div class="validation-summary">
+                  <p><strong>EVs a asignar:</strong> {{ validation.totalPoints }}</p>
+                  <p><strong>EVs restantes:</strong> {{ validation.remainingPoints }}</p>
+                </div>
+              </div>
+            }
+
+            <!-- Botones de acción -->
+            <div class="action-buttons">
+              <button
+                type="button"
+                class="btn-reset"
+                (click)="resetTraining()"
+                [disabled]="!currentSession.isCompleted"
+              >
+                Resetear Entrenamiento
+              </button>
+              <button
+                type="button"
+                class="btn-apply"
+                (click)="applyTraining()"
+                [disabled]="!validation?.isValid"
+              >
+                Aplicar Entrenamiento
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Navegación entre Pokemon -->
+        <div class="pokemon-navigation-controls">
+          <button
+            class="nav-btn"
+            (click)="previousPokemon()"
+            [disabled]="currentPokemonIndex === 0"
+          >
+            ← Anterior
+          </button>
+          <span class="nav-indicator">
+            {{ currentPokemonIndex + 1 }} de {{ trainingSessions.length }}
+          </span>
+          <button
+            class="nav-btn"
+            (click)="nextPokemon()"
+            [disabled]="currentPokemonIndex === trainingSessions.length - 1"
+          >
+            Siguiente →
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>
