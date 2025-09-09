@@ -20,6 +20,11 @@
   flex: 1;
 }
 
+.nav-menu {
+  display: flex;
+  gap: 1rem;
+}
+
 .nav-list {
   display: flex;
   list-style: none;

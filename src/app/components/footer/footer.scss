@@ -3,9 +3,11 @@
   color: #ffffff;
   padding: 2rem 0;
   margin-top: auto;
+  width: 100%; /* Footer abarca el 100% del ancho */
 }
 
 .footer-container {
+  width: 85%; /* Contenido interno alineado al 85% */
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 2rem;
@@ -32,6 +34,7 @@
 // Responsive
 @media (max-width: 768px) {
   .footer-container {
+    width: 95%; /* En móviles coincide con otros componentes */
     flex-direction: column;
     gap: 1.5rem;
     padding: 0 1rem;

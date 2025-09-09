@@ -6,20 +6,22 @@ import { Header } from './components/header/header';
 import { Footer } from './components/footer/footer';
 import { LoadingComponent } from './components/loading/loading';
 import { LoadingService, LoadingState } from './services/loading.service';
+import { HttpClientModule } from '@angular/common/http';
 
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet,AsyncPipe, Header, Footer, LoadingComponent],
+  imports: [RouterOutlet,AsyncPipe, Header, Footer, LoadingComponent, HttpClientModule],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App implements OnInit {
+  contador: number = 0;
   loadingState$!: Observable<LoadingState>;
 
   constructor(
     private loadingService: LoadingService,
-    private cdr: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef
   ) {}
 
 
@@ -30,5 +32,10 @@ export class App implements OnInit {
     setTimeout(() => {
       this.loadingService.hide();
     }, 2000);
+  }
+
+  ngAfterViewInit() {
+    this.contador = -1;
+    this.cdRef.detectChanges();
   }
 }

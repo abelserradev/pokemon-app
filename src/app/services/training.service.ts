@@ -17,6 +17,11 @@ export class TrainingService {
   private trainingSessionsSubject = new BehaviorSubject<TrainingSession[]>([]);
   public trainingSessions$ = this.trainingSessionsSubject.asObservable();
 
+  // Agregar un getter público para acceder al valor actual
+  public get currentSessions(): TrainingSession[] {
+    return this.trainingSessionsSubject.value;
+  }
+
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     // Solo cargar desde localStorage si estamos en el navegador
     if (isPlatformBrowser(this.platformId)) {
@@ -50,6 +55,7 @@ export class TrainingService {
     return session;
   }
 
+
   // Obtener sesiones de entrenamiento del equipo
   getTeamTrainingSessions(teamPokemon: Pokemon[]): TrainingSession[] {
     const existingSessions = this.trainingSessionsSubject.value;
@@ -59,9 +65,15 @@ export class TrainingService {
       let session = existingSessions.find(s => s.pokemonId === pokemon.id);
       if (!session) {
         session = this.createTrainingSession(pokemon);
+        // Agregar la nueva sesión al servicio
+        existingSessions.push(session);
       }
       teamSessions.push(session);
     });
+
+    // Actualizar el servicio con todas las sesiones
+    this.trainingSessionsSubject.next([...existingSessions]);
+    this.saveTrainingSessions();
 
     return teamSessions;
   }
@@ -137,6 +149,7 @@ export class TrainingService {
 
     return true;
   }
+
 
   // Calcular estadísticas máximas con EVs
   private calculateMaxStats(baseStats: PokemonStats, evs: PokemonStats): PokemonStats {

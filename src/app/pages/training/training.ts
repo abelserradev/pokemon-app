@@ -16,6 +16,7 @@ interface TeamPokemon {
 
 @Component({
   selector: 'app-training',
+  standalone: true,
   imports: [CommonModule, AsyncPipe, FormsModule, ReactiveFormsModule, LoadingComponent, RouterLink],
   templateUrl: './training.html',
   styleUrl: './training.scss'
@@ -119,6 +120,11 @@ export class Training implements OnInit, OnDestroy {
         specialDefense: 0,
         speed: 0
       }, { emitEvent: false });
+
+      // Forzar validación después de actualizar
+      setTimeout(() => {
+        this.validateForm();
+      }, 100);
     }
   }
 
@@ -143,17 +149,33 @@ export class Training implements OnInit, OnDestroy {
 
   // Aplicar entrenamiento
   applyTraining(): void {
-    if (this.currentSession && this.validation?.isValid) {
-      const formValue = this.trainingForm.value;
-      const success = this.trainingService.applyTraining(this.currentSession.pokemonId, formValue);
+    if (!this.currentSession) {
+      alert('Error: No hay una sesión de Pokemon activa');
+      return;
+    }
 
-      if (success) {
-        this.loadingService.show('¡Entrenamiento aplicado!', 'Tu Pokemon ha mejorado sus estadísticas', false);
-        setTimeout(() => {
-          this.loadingService.hide();
-          this.initializeTrainingSessions(); // Recargar sesiones
-        }, 2000);
-      }
+    if (!this.validation || !this.validation.isValid) {
+      alert('Error de validación: ' + (this.validation?.errors?.join(', ') || 'Formulario inválido'));
+      return;
+    }
+
+    const formValue = this.trainingForm.value;
+
+    // Asegurar que las sesiones estén en el servicio
+    this.trainingService.getTeamTrainingSessions(
+      this.teamPokemon.map(tp => tp.pokemon)
+    );
+
+    const success = this.trainingService.applyTraining(this.currentSession.pokemonId, formValue);
+
+    if (success) {
+      this.loadingService.show('¡Entrenamiento aplicado!', 'Tu Pokemon ha mejorado sus estadísticas', false);
+      setTimeout(() => {
+        this.loadingService.hide();
+        this.initializeTrainingSessions(); // Recargar sesiones
+      }, 2000);
+    } else {
+      alert('Error al aplicar el entrenamiento. Verifica los valores.');
     }
   }
 
