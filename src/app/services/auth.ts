@@ -12,4 +12,11 @@ export class Auth {
   register(user: any) {
     return this.http.post(`${this.apiUrl}/register`, user);
   }
+
+  login(user: any) {
+    const formData = new FormData();
+    formData.append('username', user.email);
+    formData.append('password', user.password);
+    return this.http.post(`${this.apiUrl}/login`, formData);
+  }
 }
