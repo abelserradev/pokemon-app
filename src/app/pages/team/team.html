@@ -92,7 +92,7 @@
         </div>
       } @else {
         <div class="team-grid">
-          @for (teamPoke of teamPokemon; track teamPoke.pokemon.id) {
+          @for (teamPoke of teamPokemon; track teamPoke.id || teamPoke.pokemon_id) {
             <div class="team-pokemon-item">
               <!-- Cyber Card para sprite y tipos -->
               <div class="cyber-card-container noselect">
@@ -193,8 +193,12 @@
 
                 <!-- Remove Button con estilo cyber -->
                 <div class="cyber-button-container">
-                  <button class="cyber-button" (click)="removeFromTeam(teamPoke.pokemon.id)">
-                    <a href="javascript:void(0)">
+                  <button
+                    class="cyber-button"
+                    (click)="removeFromTeam(teamPoke.id)"
+                    type="button"
+                  >
+                    <a>
                       <span>Eliminar</span>
                     </a>
                   </button>
