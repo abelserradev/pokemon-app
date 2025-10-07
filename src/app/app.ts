@@ -6,11 +6,10 @@ import { Header } from './components/header/header';
 import { Footer } from './components/footer/footer';
 import { LoadingComponent } from './components/loading/loading';
 import { LoadingService, LoadingState } from './services/loading.service';
-import { HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, AsyncPipe, Header, Footer, LoadingComponent, HttpClientModule],
+  imports: [RouterOutlet, AsyncPipe, Header, Footer, LoadingComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
