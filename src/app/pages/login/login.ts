@@ -20,14 +20,16 @@ export class Login {
   ) {}
 
   onSubmit() {
+    this.errorMessage = ''; // Limpiar mensaje de error anterior
+
     this.authService.login(this.user).subscribe({
       next: (response: any) => {
-        // Guardar token en localStorage
-        localStorage.setItem('token', response.access_token);
+        console.log('Usuario logueado:', response.user);
         this.router.navigate(['/home']);
       },
       error: (error: any) => {
-        this.errorMessage = error.error?.detail || 'Error en el login';
+        console.error('Error en login:', error);
+        this.errorMessage = error.error?.detail || error.message || 'Error en el login';
       }
     });
   }

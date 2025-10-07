@@ -12,13 +12,14 @@ export interface PokemonStats {
 }
 
 export interface TrainingSession {
+  id?: number;
   pokemonId: number;
   pokemonName: string;
   pokemonSprite: string;
   pokemonTypes: string[];
-  baseStats: PokemonStats;
-  currentEVs: PokemonStats;
-  maxEVs: PokemonStats;
+  baseStats: PokemonStats;      // Mantener como requerido
+  currentEVs: PokemonStats;     // Mantener como requerido
+  maxEVs: PokemonStats;         // Mantener como requerido
   trainingPoints: number;
   isCompleted: boolean;
   completedAt?: Date;

@@ -3,17 +3,30 @@
   color: #ffffff;
   padding: 2rem 0;
   margin-top: auto;
-  width: 100%; /* Footer abarca el 100% del ancho */
+  width: 100%;
+}
+
+.footer-logo {
+  display: flex;
+  justify-content: left;
+  align-items: left;
+
+  img {
+    max-width: 250px;
+    height: auto;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+  }
 }
 
 .footer-container {
-  width: 85%; /* Contenido interno alineado al 85% */
+  width: 85%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 2rem;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 2rem;
 }
 
 .footer-section {
@@ -24,19 +37,203 @@
 .footer-section h3 {
   margin-bottom: 1rem;
   color: #f5d05f;
+  font-size: 1.2rem;
 }
 
 .footer-section p {
   color: #cccccc;
   line-height: 1.6;
+  font-size: 0.9rem;
+}
+
+// Sección de favoritos
+.favorites-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.favorites-container {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.favorite-pokemon {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+
+  img {
+    width: 60px;
+    height: 60px;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  }
+
+  .use-count {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: #f5d05f;
+    color: #473822;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 0.15rem 0.4rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.no-favorites {
+  color: #999;
+  font-style: italic;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+// Enlaces rápidos
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    margin-bottom: 0.5rem;
+
+    a {
+      color: #cccccc;
+      text-decoration: none;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: #f5d05f;
+      }
+    }
+  }
+}
+
+// Sección de redes sociales
+.social-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  h3 {
+    margin-bottom: 1.5rem;
+  }
+}
+
+.social-links {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 200px;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #ffffff;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+
+  svg {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.3s ease;
+  }
+
+  span {
+    font-size: 1rem;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+    svg {
+      transform: scale(1.1);
+    }
+  }
+}
+
+.social-link.github {
+  background: linear-gradient(135deg, #24292e 0%, #000000 100%);
+
+  &:hover {
+    background: linear-gradient(135deg, #000000 0%, #24292e 100%);
+    border-color: #f5d05f;
+  }
+}
+
+.social-link.linkedin {
+  background: linear-gradient(135deg, #0077b5 0%, #005885 100%);
+
+  &:hover {
+    background: linear-gradient(135deg, #005885 0%, #0077b5 100%);
+    border-color: #f5d05f;
+  }
 }
 
 // Responsive
 @media (max-width: 768px) {
   .footer-container {
-    width: 95%; /* En móviles coincide con otros componentes */
+    width: 95%;
     flex-direction: column;
     gap: 1.5rem;
     padding: 0 1rem;
+    text-align: center;
+  }
+
+  .favorites-container {
+    gap: 0.75rem;
+  }
+
+  .favorite-pokemon img {
+    width: 50px;
+    height: 50px;
+  }
+
+  .social-links {
+    max-width: 250px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .footer-container {
+    width: 95%;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 0 1rem;
+    text-align: center;
+  }
+
+  .footer-logo img {
+    max-width: 150px;
+  }
+
+  .favorites-container {
+    gap: 0.75rem;
+  }
+
+  .favorite-pokemon img {
+    width: 50px;
+    height: 50px;
   }
 }

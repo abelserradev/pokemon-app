@@ -4,7 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build --configuration production",
+    "build:ssr": "ng build --configuration production && ng run pokemon-app:server:production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:pokemon-app": "node dist/pokemon-app/server/server.mjs"

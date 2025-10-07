@@ -1,81 +1,174 @@
-import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { TrainingSession, TrainingForm, TrainingValidation, PokemonStats } from '../shared/interfaces';
 import { Pokemon } from './pokemon.service';
-
 
 @Injectable({
   providedIn: 'root'
 })
-
 export class TrainingService {
   private readonly MAX_EV_PER_STAT = 252;
   private readonly MAX_TOTAL_EVS = 510;
   private readonly POINTS_PER_EV = 4;
+  private apiUrl = 'http://localhost:8000/api/pokemon';
 
   private trainingSessionsSubject = new BehaviorSubject<TrainingSession[]>([]);
   public trainingSessions$ = this.trainingSessionsSubject.asObservable();
 
-  // Agregar un getter público para acceder al valor actual
   public get currentSessions(): TrainingSession[] {
     return this.trainingSessionsSubject.value;
   }
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
-    // Solo cargar desde localStorage si estamos en el navegador
-    if (isPlatformBrowser(this.platformId)) {
-      this.loadTrainingSessions();
+  constructor(private http: HttpClient) {}
+
+  // Helper para obtener valores de stats con cualquier formato
+  private getStat(stats: any, key: string): number {
+    if (!stats) {
+      console.log(`getStat: stats is null/undefined for key ${key}`);
+      return 0;
     }
+
+    console.log(`getStat: Buscando '${key}' en:`, stats);
+
+    // 1. Intentar con la key exacta primero
+    if (stats[key] !== undefined) {
+      console.log(`  → Encontrado con key exacta: ${stats[key]}`);
+      return stats[key];
+    }
+
+    // 2. Intentar con guión (backend format: special-attack)
+    const dashKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+    if (stats[dashKey] !== undefined) {
+      console.log(`  → Encontrado con dashKey '${dashKey}': ${stats[dashKey]}`);
+      return stats[dashKey];
+    }
+
+    // 3. Intentar formato snake_case sin guión
+    const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+    if (stats[snakeKey] !== undefined) {
+      console.log(`  → Encontrado con snakeKey '${snakeKey}': ${stats[snakeKey]}`);
+      return stats[snakeKey];
+    }
+
+    console.log(`  → No encontrado, retornando 0`);
+    return 0;
   }
 
-  // Crear sesión de entrenamiento para un Pokemon
-  createTrainingSession(pokemon: Pokemon): TrainingSession {
+  // Transformar sesión del backend al formato frontend
+  private transformSession(s: any): TrainingSession {
+    console.log('========== TRANSFORMANDO SESIÓN ==========');
+    console.log('Datos originales del backend:', s);
+
     const baseStats: PokemonStats = {
+      hp: this.getStat(s.base_stats, 'hp'),
+      attack: this.getStat(s.base_stats, 'attack'),
+      defense: this.getStat(s.base_stats, 'defense'),
+      specialAttack: this.getStat(s.base_stats, 'specialAttack'),
+      specialDefense: this.getStat(s.base_stats, 'specialDefense'),
+      speed: this.getStat(s.base_stats, 'speed')
+    };
+
+    const currentEVs: PokemonStats = {
+      hp: this.getStat(s.current_evs, 'hp'),
+      attack: this.getStat(s.current_evs, 'attack'),
+      defense: this.getStat(s.current_evs, 'defense'),
+      specialAttack: this.getStat(s.current_evs, 'specialAttack'),
+      specialDefense: this.getStat(s.current_evs, 'specialDefense'),
+      speed: this.getStat(s.current_evs, 'speed')
+    };
+
+    const maxEVs: PokemonStats = {
+      hp: this.getStat(s.max_evs, 'hp') || 252,
+      attack: this.getStat(s.max_evs, 'attack') || 252,
+      defense: this.getStat(s.max_evs, 'defense') || 252,
+      specialAttack: this.getStat(s.max_evs, 'specialAttack') || 252,
+      specialDefense: this.getStat(s.max_evs, 'specialDefense') || 252,
+      speed: this.getStat(s.max_evs, 'speed') || 252
+    };
+
+    const transformed: TrainingSession = {
+      id: s.id,
+      pokemonId: s.pokemon_id,
+      pokemonName: s.pokemon_name,
+      pokemonSprite: s.pokemon_sprite,
+      pokemonTypes: s.pokemon_types || [],
+      baseStats,        // Ahora siempre definido
+      currentEVs,       // Ahora siempre definido
+      maxEVs,           // Ahora siempre definido
+      trainingPoints: s.training_points || s.remaining_points || 510,
+      isCompleted: s.is_completed || false,
+      completedAt: s.completed_at ? new Date(s.completed_at) : undefined
+    };
+
+    console.log('Sesión transformada:', transformed);
+    console.log('==========================================');
+
+    return transformed;
+  }
+
+  // Cargar sesiones desde el backend
+  loadTrainingSessions(): Observable<TrainingSession[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/training`).pipe(
+      tap(sessions => {
+        console.log('Sesiones recibidas del backend:', sessions);
+
+        const transformedSessions: TrainingSession[] = sessions.map(s => this.transformSession(s));
+
+        console.log('Sesiones transformadas:', transformedSessions);
+        this.trainingSessionsSubject.next(transformedSessions);
+      })
+    );
+  }
+
+  // Crear sesión de entrenamiento en el backend
+  createTrainingSession(pokemon: Pokemon): Observable<TrainingSession> {
+    const baseStats = {
       hp: pokemon.stats.find(s => s.stat.name === 'hp')?.base_stat || 0,
       attack: pokemon.stats.find(s => s.stat.name === 'attack')?.base_stat || 0,
       defense: pokemon.stats.find(s => s.stat.name === 'defense')?.base_stat || 0,
-      specialAttack: pokemon.stats.find(s => s.stat.name === 'special-attack')?.base_stat || 0,
-      specialDefense: pokemon.stats.find(s => s.stat.name === 'special-defense')?.base_stat || 0,
+      'special-attack': pokemon.stats.find(s => s.stat.name === 'special-attack')?.base_stat || 0,
+      'special-defense': pokemon.stats.find(s => s.stat.name === 'special-defense')?.base_stat || 0,
       speed: pokemon.stats.find(s => s.stat.name === 'speed')?.base_stat || 0
     };
 
-    const session: TrainingSession = {
-      pokemonId: pokemon.id,
-      pokemonName: pokemon.name,
-      pokemonSprite: pokemon.sprites.front_default,
-      pokemonTypes: pokemon.types.map(t => t.type.name),
-      baseStats,
-      currentEVs: { hp: 0, attack: 0, defense: 0, specialAttack: 0, specialDefense: 0, speed: 0 },
-      maxEVs: { hp: 0, attack: 0, defense: 0, specialAttack: 0, specialDefense: 0, speed: 0 },
-      trainingPoints: this.MAX_TOTAL_EVS,
-      isCompleted: false
+    const sessionData = {
+      pokemon_id: pokemon.id,
+      pokemon_name: pokemon.name,
+      pokemon_sprite: pokemon.sprites.front_default,
+      pokemon_types: pokemon.types.map(t => t.type.name),
+      base_stats: baseStats,
+      current_evs: {
+        hp: 0,
+        attack: 0,
+        defense: 0,
+        'special-attack': 0,
+        'special-defense': 0,
+        speed: 0
+      },
+      max_evs: {
+        hp: 252,
+        attack: 252,
+        defense: 252,
+        'special-attack': 252,
+        'special-defense': 252,
+        speed: 252
+      },
+      training_points: this.MAX_TOTAL_EVS
     };
 
-    return session;
-  }
+    console.log('Creando sesión con datos:', sessionData);
 
+    return this.http.post<any>(`${this.apiUrl}/training`, sessionData).pipe(
+      tap((session: any) => {
+        console.log('Sesión creada por backend:', session);
+        const transformedSession = this.transformSession(session);
 
-  // Obtener sesiones de entrenamiento del equipo
-  getTeamTrainingSessions(teamPokemon: Pokemon[]): TrainingSession[] {
-    const existingSessions = this.trainingSessionsSubject.value;
-    const teamSessions: TrainingSession[] = [];
-
-    teamPokemon.forEach(pokemon => {
-      let session = existingSessions.find(s => s.pokemonId === pokemon.id);
-      if (!session) {
-        session = this.createTrainingSession(pokemon);
-        // Agregar la nueva sesión al servicio
-        existingSessions.push(session);
-      }
-      teamSessions.push(session);
-    });
-
-    // Actualizar el servicio con todas las sesiones
-    this.trainingSessionsSubject.next([...existingSessions]);
-    this.saveTrainingSessions();
-
-    return teamSessions;
+        const currentSessions = this.trainingSessionsSubject.value;
+        this.trainingSessionsSubject.next([...currentSessions, transformedSession]);
+      })
+    );
   }
 
   // Validar formulario de entrenamiento
@@ -83,26 +176,32 @@ export class TrainingService {
     const errors: string[] = [];
     let totalPoints = 0;
 
-    // Calcular puntos totales
+    // Verificar que currentEVs existe
+    if (!currentEVs) {
+      return {
+        isValid: false,
+        errors: ['Error: Datos de EVs no disponibles'],
+        totalPoints: 0,
+        remainingPoints: this.MAX_TOTAL_EVS
+      };
+    }
+
     Object.values(form).forEach(value => {
       totalPoints += value;
     });
 
-    // Validar límites por estadística
     Object.entries(form).forEach(([stat, value]) => {
-      const currentEV = currentEVs[stat as keyof PokemonStats];
+      const currentEV = currentEVs[stat as keyof PokemonStats] || 0;
       if (value + currentEV > this.MAX_EV_PER_STAT) {
         errors.push(`${this.getStatDisplayName(stat)} no puede exceder ${this.MAX_EV_PER_STAT} EVs`);
       }
     });
 
-    // Validar límite total
-    const currentTotal = Object.values(currentEVs).reduce((sum, ev) => sum + ev, 0);
+    const currentTotal = Object.values(currentEVs).reduce((sum, ev) => sum + (ev || 0), 0);
     if (totalPoints + currentTotal > this.MAX_TOTAL_EVS) {
       errors.push(`El total de EVs no puede exceder ${this.MAX_TOTAL_EVS}`);
     }
 
-    // Validar que al menos una estadística tenga EVs
     if (totalPoints === 0) {
       errors.push('Debes asignar al menos 1 EV a alguna estadística');
     }
@@ -115,41 +214,74 @@ export class TrainingService {
     };
   }
 
-  // Aplicar entrenamiento
-  applyTraining(pokemonId: number, form: TrainingForm): boolean {
-    const sessions = this.trainingSessionsSubject.value;
-    const sessionIndex = sessions.findIndex(s => s.pokemonId === pokemonId);
+  // Aplicar entrenamiento en el backend
+  applyTraining(sessionId: number, form: TrainingForm, currentEVs: PokemonStats): Observable<TrainingSession> {
+    const validation = this.validateTrainingForm(form, currentEVs);
 
-    if (sessionIndex === -1) return false;
+    if (!validation.isValid) {
+      throw new Error(validation.errors.join(', '));
+    }
 
-    const session = sessions[sessionIndex];
-    const validation = this.validateTrainingForm(form, session.currentEVs);
-
-    if (!validation.isValid) return false;
-
-    // Actualizar EVs
-    session.currentEVs = {
-      hp: session.currentEVs.hp + form.hp,
-      attack: session.currentEVs.attack + form.attack,
-      defense: session.currentEVs.defense + form.defense,
-      specialAttack: session.currentEVs.specialAttack + form.specialAttack,
-      specialDefense: session.currentEVs.specialDefense + form.specialDefense,
-      speed: session.currentEVs.speed + form.speed
+    const updatedEVs = {
+      hp: currentEVs.hp + form.hp,
+      attack: currentEVs.attack + form.attack,
+      defense: currentEVs.defense + form.defense,
+      'special-attack': currentEVs.specialAttack + form.specialAttack,
+      'special-defense': currentEVs.specialDefense + form.specialDefense,
+      speed: currentEVs.speed + form.speed
     };
 
-    // Calcular estadísticas máximas
-    session.maxEVs = this.calculateMaxStats(session.baseStats, session.currentEVs);
-    session.trainingPoints = validation.remainingPoints;
-    session.isCompleted = true;
-    session.completedAt = new Date();
+    // Obtener baseStats de manera segura
+    const baseStatsSession = this.trainingSessionsSubject.value.find(s => s.id === sessionId);
 
-    sessions[sessionIndex] = session;
-    this.trainingSessionsSubject.next([...sessions]);
-    this.saveTrainingSessions();
+    if (!baseStatsSession?.baseStats) {
+      throw new Error('No se encontraron las estadísticas base del pokémon');
+    }
 
-    return true;
+    const maxEVs = this.calculateMaxStats(baseStatsSession.baseStats, {
+      hp: updatedEVs.hp,
+      attack: updatedEVs.attack,
+      defense: updatedEVs.defense,
+      specialAttack: updatedEVs['special-attack'],
+      specialDefense: updatedEVs['special-defense'],
+      speed: updatedEVs.speed
+    });
+
+    const updateData = {
+      current_evs: updatedEVs,
+      max_evs: {
+        hp: maxEVs.hp,
+        attack: maxEVs.attack,
+        defense: maxEVs.defense,
+        'special-attack': maxEVs.specialAttack,
+        'special-defense': maxEVs.specialDefense,
+        speed: maxEVs.speed
+      },
+      training_points: validation.remainingPoints,
+      is_completed: true
+    };
+
+    return this.http.put<any>(`${this.apiUrl}/training/${sessionId}`, updateData).pipe(
+      tap((updatedSession: any) => {
+        console.log('========== APLICAR ENTRENAMIENTO ==========');
+        console.log('Respuesta del backend:', updatedSession);
+
+        const transformedSession = this.transformSession(updatedSession);
+        console.log('Sesión transformada:', transformedSession);
+
+        const sessions = this.trainingSessionsSubject.value;
+        const index = sessions.findIndex(s => s.id === sessionId);
+        console.log('Índice de sesión:', index);
+
+        if (index !== -1) {
+          sessions[index] = transformedSession;
+          this.trainingSessionsSubject.next([...sessions]);
+          console.log('BehaviorSubject actualizado con sesiones:', sessions);
+        }
+        console.log('==========================================');
+      })
+    );
   }
-
 
   // Calcular estadísticas máximas con EVs
   private calculateMaxStats(baseStats: PokemonStats, evs: PokemonStats): PokemonStats {
@@ -176,48 +308,14 @@ export class TrainingService {
     return statNames[stat] || stat;
   }
 
-  // Guardar sesiones en localStorage
-  private saveTrainingSessions(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      try {
-        localStorage.setItem('trainingSessions', JSON.stringify(this.trainingSessionsSubject.value));
-      } catch (error) {
-        console.error('Error saving training sessions:', error);
-      }
-    }
-  }
-
-  // Cargar sesiones desde localStorage
-  private loadTrainingSessions(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      try {
-        const saved = localStorage.getItem('trainingSessions');
-        if (saved) {
-          const sessions = JSON.parse(saved);
-          this.trainingSessionsSubject.next(sessions);
-        }
-      } catch (error) {
-        console.error('Error loading training sessions:', error);
-      }
-    }
-  }
-
-  // Resetear entrenamiento de un Pokemon
-  resetTraining(pokemonId: number): void {
-    const sessions = this.trainingSessionsSubject.value;
-    const sessionIndex = sessions.findIndex(s => s.pokemonId === pokemonId);
-
-    if (sessionIndex !== -1) {
-      const session = sessions[sessionIndex];
-      session.currentEVs = { hp: 0, attack: 0, defense: 0, specialAttack: 0, specialDefense: 0, speed: 0 };
-      session.maxEVs = { hp: 0, attack: 0, defense: 0, specialAttack: 0, specialDefense: 0, speed: 0 };
-      session.trainingPoints = this.MAX_TOTAL_EVS;
-      session.isCompleted = false;
-      session.completedAt = undefined;
-
-      sessions[sessionIndex] = session;
-      this.trainingSessionsSubject.next([...sessions]);
-      this.saveTrainingSessions();
-    }
+  // Resetear entrenamiento en el backend
+  resetTraining(sessionId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/training/${sessionId}`).pipe(
+      tap(() => {
+        const sessions = this.trainingSessionsSubject.value;
+        const filteredSessions = sessions.filter(s => s.id !== sessionId);
+        this.trainingSessionsSubject.next(filteredSessions);
+      })
+    );
   }
 }
