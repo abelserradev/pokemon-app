@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'backend-pokemonapp.vercel.app'
+  apiUrl: 'https://backend-production-33ab.up.railway.app/api'
 };
