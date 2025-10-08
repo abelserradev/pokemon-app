@@ -25,6 +25,11 @@ export class TeamService {
 
   constructor(private http: HttpClient) {}
 
+  // Limpiar cache y forzar recarga
+  clearCache(): void {
+    this.teamSubject.next([]);
+  }
+
   loadTeam(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/team`).pipe(
       tap(team => {

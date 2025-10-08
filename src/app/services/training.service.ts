@@ -24,6 +24,11 @@ export class TrainingService {
 
   constructor(private http: HttpClient) {}
 
+  // Limpiar cache y forzar recarga
+  clearCache(): void {
+    this.trainingSessionsSubject.next([]);
+  }
+
   // Helper para obtener valores de stats con cualquier formato
   private getStat(stats: any, key: string): number {
     if (!stats) {

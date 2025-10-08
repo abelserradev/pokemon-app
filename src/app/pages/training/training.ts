@@ -44,6 +44,11 @@ export class Training implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadingState$ = this.loadingService.loading$;
+    
+    // Limpiar cache antes de cargar datos frescos
+    this.teamService.clearCache();
+    this.trainingService.clearCache();
+    
     this.loadTeamAndSessions();
     this.setupFormValidation();
 
@@ -55,6 +60,11 @@ export class Training implements OnInit, OnDestroy {
           this.teamPokemon = team;
           // Siempre recargar sesiones cuando cambie el equipo
           this.initializeTrainingSessions();
+        } else {
+          // Si no hay equipo, limpiar sesiones
+          this.trainingSessions = [];
+          this.currentSession = null;
+          this.teamPokemon = [];
         }
       })
     );
@@ -67,13 +77,22 @@ export class Training implements OnInit, OnDestroy {
   private loadTeamAndSessions(): void {
     this.teamService.loadTeam().subscribe({
       next: (team) => {
+        console.log('Equipo cargado desde backend:', team);
         this.teamPokemon = team;
         if (team.length > 0) {
           this.initializeTrainingSessions();
+        } else {
+          // Limpiar datos si no hay equipo
+          this.trainingSessions = [];
+          this.currentSession = null;
         }
       },
       error: (error) => {
         console.error('Error al cargar el equipo:', error);
+        // En caso de error, limpiar datos
+        this.teamPokemon = [];
+        this.trainingSessions = [];
+        this.currentSession = null;
       }
     });
   }
