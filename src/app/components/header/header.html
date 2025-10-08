@@ -1,33 +1,54 @@
 <header class="header">
   <div class="header-container">
-    <!-- Sección izquierda - Navegación -->
-    <nav class="nav-section">
-      <ul class="nav-list">
-        <li><a routerLink="/" class="nav-link">Inicio</a></li>
-        <li><a routerLink="/pokemon" class="nav-link">Pokemon</a></li>
-        <li><a routerLink="/equipo" class="nav-link">Equipo</a></li>
-        <li><a routerLink="/entrenamiento" class="nav-link">Entrenamiento</a></li>
-      </ul>
-    </nav>
-
-    <!-- Sección central - Logo -->
+    <!-- Logo central -->
     <div class="logo-section">
       <div class="logo">
         <h1>Battle Pokemon</h1>
       </div>
     </div>
 
-    <!-- Sección derecha - Botones de autenticación -->
-    <nav class="nav-menu">
-      @if (!currentUser) {
-        <a routerLink="/login" class="nav-link">Login</a>
-        <a routerLink="/register" class="nav-link">Registro</a>
-      } @else {
-        <div class="user-info">
-          <span class="user-email">{{ currentUser.email }}</span>
-          <button (click)="logout()" class="btn-logout">Cerrar Sesión</button>
-        </div>
-      }
+    <!-- Botón hamburguesa para móviles -->
+    <button 
+      class="hamburger-btn" 
+      (click)="toggleMenu()" 
+      [class.active]="isMenuOpen"
+      aria-label="Toggle navigation menu"
+      aria-expanded="isMenuOpen"
+    >
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+
+    <!-- Menú de navegación -->
+    <nav class="nav-menu" [class.open]="isMenuOpen">
+      <!-- Navegación principal -->
+      <div class="nav-section">
+        <ul class="nav-list">
+          <li><a routerLink="/" class="nav-link" (click)="onNavigation()">Inicio</a></li>
+          <li><a routerLink="/pokemon" class="nav-link" (click)="onNavigation()">Pokemon</a></li>
+          <li><a routerLink="/equipo" class="nav-link" (click)="onNavigation()">Equipo</a></li>
+          <li><a routerLink="/entrenamiento" class="nav-link" (click)="onNavigation()">Entrenamiento</a></li>
+        </ul>
+      </div>
+
+      <!-- Sección de autenticación -->
+      <div class="auth-section">
+        @if (!currentUser) {
+          <div class="auth-buttons">
+            <a routerLink="/login" class="nav-link auth-link" (click)="onNavigation()">Login</a>
+            <a routerLink="/register" class="nav-link auth-link" (click)="onNavigation()">Registro</a>
+          </div>
+        } @else {
+          <div class="user-info">
+            <span class="user-email">{{ currentUser.email }}</span>
+            <button (click)="logout()" class="btn-logout">Cerrar Sesión</button>
+          </div>
+        }
+      </div>
     </nav>
+
+    <!-- Overlay para cerrar el menú en móviles -->
+    <div class="menu-overlay" [class.active]="isMenuOpen" (click)="closeMenu()"></div>
   </div>
 </header>

@@ -12,6 +12,7 @@ import { CommonModule } from '@angular/common';
 })
 export class Header implements OnInit {
   currentUser: User | null = null;
+  isMenuOpen = false;
 
   constructor(
     private authService: Auth,
@@ -27,5 +28,18 @@ export class Header implements OnInit {
   logout() {
     this.authService.logout();
     this.router.navigate(['/login']);
+    this.closeMenu();
+  }
+
+  toggleMenu() {
+    this.isMenuOpen = !this.isMenuOpen;
+  }
+
+  closeMenu() {
+    this.isMenuOpen = false;
+  }
+
+  onNavigation() {
+    this.closeMenu();
   }
 }
