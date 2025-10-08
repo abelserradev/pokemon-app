@@ -107,7 +107,7 @@ export class Training implements OnInit, OnDestroy {
 
           // Filtrar solo las sesiones que corresponden a Pokémon en el equipo actual
           const currentTeamIds = this.teamPokemon.map(p => p.pokemon_id);
-          const validSessions = transformedSessions.filter(session => 
+          const validSessions = transformedSessions.filter(session =>
             currentTeamIds.includes(session.pokemonId)
           );
 
