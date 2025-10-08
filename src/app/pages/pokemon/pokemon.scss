@@ -135,14 +135,15 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   z-index: 1000;
   max-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   opacity: 0;
   transform: translateY(-10px);
   transition: all 0.3s ease;
 }
 
 .dropdown-menu.open {
-  max-height: 300px;
+  max-height: 250px;  
   opacity: 1;
   transform: translateY(0);
 }
