@@ -90,10 +90,10 @@ export class TeamService {
   updateAbility(teamPokemonId: number, ability: string): Observable<any> {
     // Por ahora, actualizar solo localmente hasta que el backend implemente el endpoint
     console.log(`Actualizando habilidad para teamPokemonId: ${teamPokemonId}, habilidad: ${ability}`);
-    
+
     const currentTeam = this.teamSubject.value;
     const index = currentTeam.findIndex(p => p.id === teamPokemonId);
-    
+
     if (index !== -1) {
       currentTeam[index] = {
         ...currentTeam[index],
@@ -102,7 +102,7 @@ export class TeamService {
       };
       this.teamSubject.next([...currentTeam]);
       console.log('Habilidad actualizada localmente:', currentTeam[index]);
-      
+
       // Retornar un observable que se complete inmediatamente
       return new Observable(observer => {
         observer.next(currentTeam[index]);
