@@ -85,3 +85,26 @@
 .btn-link:hover {
   color: #ffeba7;
 }
+
+@media (max-width: 768px) {
+  .card {
+    width: calc(100% - 2rem); // Ancho completo menos márgenes
+    max-width: 400px;
+    margin: 8rem 1rem; // Márgenes laterales más pequeños en móviles
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    margin: 10rem -.1rem; // Márgenes aún más pequeños
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 370px) {
+  .card {
+    margin: 10rem -.1rem; // Márgenes aún más pequeños
+    padding: 1rem;
+  }
+}
