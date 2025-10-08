@@ -30,13 +30,11 @@ export class Auth {
     private http: HttpClient,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
-    // Solo verificar localStorage en el navegador
     if (isPlatformBrowser(this.platformId)) {
       const token = this.getToken();
       if (token) {
         this.getUserProfile().subscribe({
           error: () => {
-            // Si hay error al obtener el perfil, limpiar el token
             this.removeToken();
           }
         });
@@ -51,11 +49,20 @@ export class Auth {
   }
 
   login(user: any): Observable<LoginResponse> {
-    const formData = new FormData();
-    formData.append('username', user.email);
-    formData.append('password', user.password);
+    // Crear URLSearchParams para application/x-www-form-urlencoded
+    const body = new URLSearchParams();
+    body.set('username', user.email);
+    body.set('password', user.password);
 
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, formData).pipe(
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/x-www-form-urlencoded'
+    });
+
+    return this.http.post<LoginResponse>(
+      `${this.apiUrl}/login`, 
+      body.toString(), 
+      { headers }
+    ).pipe(
       tap(response => {
         this.setToken(response.access_token);
         this.currentUserSubject.next(response.user);
