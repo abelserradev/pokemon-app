@@ -177,7 +177,7 @@
                   <select
                     id="ability-{{ teamPoke.pokemon.id }}"
                     [(ngModel)]="teamPoke.selectedAbility"
-                    (change)="onAbilityChange(teamPoke.pokemon.id, teamPoke.selectedAbility)"
+                    (change)="onAbilityChange(teamPoke.id, teamPoke.selectedAbility)"
                     class="ability-select"
                   >
                     @for (ability of teamPoke.pokemon.abilities; track ability.ability.name) {

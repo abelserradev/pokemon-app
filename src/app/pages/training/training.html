@@ -39,7 +39,7 @@
             [class.trained]="isPokemonTrained(i)"
             (click)="goToPokemon(i)"
           >
-            <img [src]="session.pokemonSprite" [alt]="session.pokemonName" />
+            <img [src]="session.pokemonSprite || '/favicon.ico'" [alt]="session.pokemonName || 'Pokémon'" />
             <span class="pokemon-name">{{ session.pokemonName | titlecase }}</span>
             @if (isPokemonTrained(i)) {
               <span class="trained-badge">✓</span>
@@ -56,7 +56,7 @@
         <div class="pokemon-info-section">
           <div class="pokemon-card">
             <div class="pokemon-sprite">
-              <img [src]="currentSession.pokemonSprite" [alt]="currentSession.pokemonName" />
+              <img [src]="currentSession.pokemonSprite || '/favicon.ico'" [alt]="currentSession.pokemonName || 'Pokémon'" />
             </div>
             <div class="pokemon-details">
               <h2>{{ currentSession.pokemonName | titlecase }}</h2>

@@ -44,11 +44,11 @@ export class Training implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadingState$ = this.loadingService.loading$;
-    
+
     // Limpiar cache antes de cargar datos frescos
     this.teamService.clearCache();
     this.trainingService.clearCache();
-    
+
     this.loadTeamAndSessions();
     this.setupFormValidation();
 
@@ -105,21 +105,34 @@ export class Training implements OnInit, OnDestroy {
           const transformedSessions = this.trainingService.currentSessions;
           console.log('Sesiones desde currentSessions:', transformedSessions);
 
-          this.trainingSessions = transformedSessions;
+          // Filtrar solo las sesiones que corresponden a Pokémon en el equipo actual
+          const currentTeamIds = this.teamPokemon.map(p => p.pokemon_id);
+          const validSessions = transformedSessions.filter(session => 
+            currentTeamIds.includes(session.pokemonId)
+          );
 
-          if (transformedSessions.length > 0) {
-            this.currentSession = transformedSessions[0];
+          console.log('Sesiones filtradas por equipo actual:', validSessions);
+          this.trainingSessions = validSessions;
+
+          if (validSessions.length > 0) {
+            this.currentSession = validSessions[0];
+            this.currentPokemonIndex = 0;
             console.log('currentSession asignada:', this.currentSession);
             console.log('pokemonSprite:', this.currentSession?.pokemonSprite);
             console.log('pokemonTypes:', this.currentSession?.pokemonTypes);
             console.log('baseStats:', this.currentSession?.baseStats);
             console.log('currentEVs:', this.currentSession?.currentEVs);
           } else {
-            console.log('No hay sesiones de entrenamiento');
+            console.log('No hay sesiones de entrenamiento válidas para el equipo actual');
+            this.currentSession = null;
+            this.currentPokemonIndex = 0;
           }
         },
         error: (error) => {
           console.error('Error al cargar sesiones de entrenamiento:', error);
+          this.trainingSessions = [];
+          this.currentSession = null;
+          this.currentPokemonIndex = 0;
         }
       })
     );

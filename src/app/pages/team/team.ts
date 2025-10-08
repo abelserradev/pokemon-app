@@ -192,8 +192,8 @@ export class Team implements OnInit, OnDestroy {
     });
   }
 
-  onAbilityChange(pokemonId: number, abilityName: string): void {
-    this.teamService.updateAbility(pokemonId, abilityName).subscribe({
+  onAbilityChange(teamPokemonId: number, abilityName: string): void {
+    this.teamService.updateAbility(teamPokemonId, abilityName).subscribe({
       next: () => {
         console.log('Habilidad actualizada');
       },

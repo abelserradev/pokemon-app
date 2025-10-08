@@ -87,11 +87,12 @@ export class TeamService {
     );
   }
 
-  updateAbility(pokemonId: number, ability: string): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/team/${pokemonId}/ability`, { ability }).pipe(
+  updateAbility(teamPokemonId: number, ability: string): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/team/${teamPokemonId}/ability`, { ability }).pipe(
       tap(updatedPokemon => {
+        console.log('Habilidad actualizada:', updatedPokemon);
         const currentTeam = this.teamSubject.value;
-        const index = currentTeam.findIndex(p => p.pokemon_id === pokemonId);
+        const index = currentTeam.findIndex(p => p.id === teamPokemonId);
         if (index !== -1) {
           currentTeam[index] = {
             ...currentTeam[index],
