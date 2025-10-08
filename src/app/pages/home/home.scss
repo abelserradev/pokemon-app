@@ -125,7 +125,7 @@ main {
 
 .feature-card {
   width: 240px; /* Agrandar ligeramente las cards */
-  height: 220px; /* Agrandar ligeramente la altura */
+  height: 240px; /* Aumentar altura para mejor visualización del icono */
   background: #473822;
   position: relative;
   display: flex;
@@ -194,6 +194,12 @@ main {
   z-index: 1;
   position: relative;
   margin: 0 0 0.8rem 0;
+
+  img {
+    max-width: 50px;
+    max-height: 50px;
+    object-fit: contain;
+  }
 }
 
 // Responsive Design
@@ -240,8 +246,13 @@ main {
   .feature-card {
     width: 90%;
     max-width: 300px;
-    height: 200px;
+    height: 220px;
     padding: 15px;
+  }
+
+  .feature-icon img {
+    max-width: 45px;
+    max-height: 45px;
   }
 }
 
@@ -285,7 +296,12 @@ main {
   .feature-card {
     width: 90%;
     max-width: 280px;
-    height: 200px;
+    height: 220px;
+  }
+
+  .feature-icon img {
+    max-width: 40px;
+    max-height: 40px;
   }
 }
 
@@ -317,5 +333,11 @@ main {
 
   .feature-card {
     max-width: 260px;
+    height: 220px;
+  }
+
+  .feature-icon img {
+    max-width: 35px;
+    max-height: 35px;
   }
 }
