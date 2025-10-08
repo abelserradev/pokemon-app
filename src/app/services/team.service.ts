@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Pokemon } from './pokemon.service';
+import { environment } from '../../environments/environment';
 
 export interface TeamPokemon {
   id?: number;
@@ -18,7 +19,7 @@ export interface TeamPokemon {
   providedIn: 'root'
 })
 export class TeamService {
-  private apiUrl = 'http://localhost:8000/api/pokemon';
+  private apiUrl = `${environment.apiUrl}/pokemon`;
   private teamSubject = new BehaviorSubject<any[]>([]);
   public team$ = this.teamSubject.asObservable();
 

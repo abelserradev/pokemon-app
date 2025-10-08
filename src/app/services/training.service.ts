@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TrainingSession, TrainingForm, TrainingValidation, PokemonStats } from '../shared/interfaces';
 import { Pokemon } from './pokemon.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,7 @@ export class TrainingService {
   private readonly MAX_EV_PER_STAT = 252;
   private readonly MAX_TOTAL_EVS = 510;
   private readonly POINTS_PER_EV = 4;
-  private apiUrl = 'http://localhost:8000/api/pokemon';
+  private apiUrl = `${environment.apiUrl}/pokemon`;
 
   private trainingSessionsSubject = new BehaviorSubject<TrainingSession[]>([]);
   public trainingSessions$ = this.trainingSessionsSubject.asObservable();

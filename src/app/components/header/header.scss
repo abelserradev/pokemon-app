@@ -199,7 +199,7 @@
   z-index: 999;
   overflow-y: auto;
   transition: right 0.3s ease;
-  
+
   &.open {
     right: 0;
   }
@@ -268,7 +268,7 @@
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none; /* No bloquea interacciones cuando está inactivo */
-  
+
   &.active {
     opacity: 1;
     pointer-events: auto; /* Solo bloquea cuando está activo */
@@ -294,19 +294,19 @@
   .header {
     padding: 0.5rem 0; /* Aumentar altura del header para móviles */
   }
-  
+
   .header-container {
     padding: 1.5rem 1rem; /* Aumentar padding interno */
     min-height: 80px; /* Altura mínima para móviles */
   }
-  
+
   .logo-section {
     flex: 0;
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
   }
-  
+
   .logo h1 {
     font-size: 1.8rem; /* Aumentar tamaño del logo en móviles */
     padding: 0.5rem 0; /* Agregar padding vertical */
@@ -324,7 +324,7 @@
     width: 45px; /* Aumentar tamaño del botón */
     height: 45px;
     right: 0.75rem; /* Ajustar posición */
-    
+
     .hamburger-line {
       width: 28px; /* Líneas más largas */
       height: 3.5px; /* Líneas más gruesas */
@@ -347,22 +347,22 @@
     padding: 1.25rem 0.75rem; /* Mantener altura pero reducir padding lateral */
     min-height: 75px; /* Altura mínima para móviles pequeños */
   }
-  
+
   .logo h1 {
     font-size: 1.6rem; /* Mantener tamaño legible */
     padding: 0.25rem 0;
   }
-  
+
   .mobile-menu {
     width: 100%;
     padding: 5.5rem 0 2rem; /* Ajustar padding superior */
   }
-  
+
   .hamburger-btn {
     width: 40px;
     height: 40px;
     right: 0.5rem;
-    
+
     .hamburger-line {
       width: 25px;
       height: 3px;
@@ -375,20 +375,20 @@
     padding: 1rem 0.5rem;
     min-height: 70px;
   }
-  
+
   .logo h1 {
     font-size: 1.4rem; /* Mantener legibilidad */
     padding: 0.125rem 0;
   }
-  
+
   .mobile-menu {
     padding: 5rem 0 2rem;
   }
-  
+
   .hamburger-btn {
     width: 38px;
     height: 38px;
-    
+
     .hamburger-line {
       width: 22px;
       height: 2.5px;
