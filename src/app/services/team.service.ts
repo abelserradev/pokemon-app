@@ -88,21 +88,32 @@ export class TeamService {
   }
 
   updateAbility(teamPokemonId: number, ability: string): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/team/${teamPokemonId}/ability`, { ability }).pipe(
-      tap(updatedPokemon => {
-        console.log('Habilidad actualizada:', updatedPokemon);
-        const currentTeam = this.teamSubject.value;
-        const index = currentTeam.findIndex(p => p.id === teamPokemonId);
-        if (index !== -1) {
-          currentTeam[index] = {
-            ...currentTeam[index],
-            selected_ability: ability,
-            selectedAbility: ability
-          };
-          this.teamSubject.next([...currentTeam]);
-        }
-      })
-    );
+    // Por ahora, actualizar solo localmente hasta que el backend implemente el endpoint
+    console.log(`Actualizando habilidad para teamPokemonId: ${teamPokemonId}, habilidad: ${ability}`);
+    
+    const currentTeam = this.teamSubject.value;
+    const index = currentTeam.findIndex(p => p.id === teamPokemonId);
+    
+    if (index !== -1) {
+      currentTeam[index] = {
+        ...currentTeam[index],
+        selected_ability: ability,
+        selectedAbility: ability
+      };
+      this.teamSubject.next([...currentTeam]);
+      console.log('Habilidad actualizada localmente:', currentTeam[index]);
+      
+      // Retornar un observable que se complete inmediatamente
+      return new Observable(observer => {
+        observer.next(currentTeam[index]);
+        observer.complete();
+      });
+    } else {
+      // Retornar un observable con error si no se encuentra el Pokémon
+      return new Observable(observer => {
+        observer.error(new Error(`No se encontró el Pokémon con ID: ${teamPokemonId}`));
+      });
+    }
   }
 
   getCurrentTeam(): any[] {

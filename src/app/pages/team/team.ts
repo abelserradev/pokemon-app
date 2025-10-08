@@ -193,13 +193,16 @@ export class Team implements OnInit, OnDestroy {
   }
 
   onAbilityChange(teamPokemonId: number, abilityName: string): void {
+    console.log(`Cambiando habilidad para teamPokemonId: ${teamPokemonId} a: ${abilityName}`);
+    
     this.teamService.updateAbility(teamPokemonId, abilityName).subscribe({
-      next: () => {
-        console.log('Habilidad actualizada');
+      next: (updatedPokemon) => {
+        console.log('Habilidad actualizada exitosamente:', updatedPokemon);
+        this.error = null; // Limpiar errores previos
       },
       error: (error) => {
         console.error('Error al actualizar habilidad:', error);
-        this.error = error.error?.detail || 'Error al actualizar la habilidad';
+        this.error = error.message || 'Error al actualizar la habilidad';
       }
     });
   }
