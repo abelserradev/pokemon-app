@@ -3,7 +3,9 @@
   <div class="generations-bar">
     <div class="generations-container">
       <h2>Generaciones</h2>
-      <div class="generations-list">
+
+      <!-- Versión Desktop: Lista completa -->
+      <div class="generations-list desktop">
         @for (gen of generations; track gen.number) {
           <button
             class="gen-button"
@@ -13,6 +15,30 @@
             {{ gen.name }}
           </button>
         }
+      </div>
+
+      <!-- Versión Mobile: Dropdown -->
+      <div class="generations-dropdown mobile">
+        <button
+          class="dropdown-toggle"
+          (click)="toggleDropdown()"
+          [class.active]="isDropdownOpen"
+        >
+          <span>{{ getCurrentGenerationName() }}</span>
+          <span class="dropdown-arrow" [class.rotated]="isDropdownOpen">▼</span>
+        </button>
+
+        <div class="dropdown-menu" [class.open]="isDropdownOpen">
+          @for (gen of generations; track gen.number) {
+            <button
+              class="dropdown-item"
+              [class.active]="selectedGeneration === gen.number"
+              (click)="selectGeneration(gen.number)"
+            >
+              {{ gen.name }}
+            </button>
+          }
+        </div>
       </div>
     </div>
   </div>

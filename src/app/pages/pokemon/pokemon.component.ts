@@ -26,8 +26,7 @@ export class PokemonComponent implements OnInit, OnDestroy {
     { number: 6, name: 'Gen 6', start: 650, end: 721 },
     { number: 7, name: 'Gen 7', start: 722, end: 809 },
     { number: 8, name: 'Gen 8', start: 810, end: 898 },
-    { number: 9, name: 'Gen 9', start: 899, end: 1025 },
-    { number: 10, name: 'Gen 10', start: 1026, end: 1025 }
+    { number: 9, name: 'Gen 9', start: 899, end: 1025 }
   ];
 
   selectedGeneration = 1;
@@ -38,6 +37,7 @@ export class PokemonComponent implements OnInit, OnDestroy {
   totalPages = 0;
   pokemonPerPage = 20;
   loadingState$!: Observable<LoadingState>;
+  isDropdownOpen = false;
   private subscriptions = new Subscription();
 
   constructor(
@@ -85,6 +85,7 @@ export class PokemonComponent implements OnInit, OnDestroy {
   async selectGeneration(generation: number): Promise<void> {
     this.selectedGeneration = generation;
     this.currentPage = 1;
+    this.isDropdownOpen = false; // Cerrar dropdown al seleccionar
     this.cacheService.setCurrentGeneration(generation);
     this.cacheService.setCurrentPage(1);
     await this.loadPokemon();
@@ -160,5 +161,15 @@ export class PokemonComponent implements OnInit, OnDestroy {
       'speed': 'Velocidad'
     };
     return statNames[statName] || statName;
+  }
+
+  // Métodos para el dropdown
+  toggleDropdown(): void {
+    this.isDropdownOpen = !this.isDropdownOpen;
+  }
+
+  getCurrentGenerationName(): string {
+    const currentGen = this.generations.find(gen => gen.number === this.selectedGeneration);
+    return currentGen ? currentGen.name : 'Gen 1';
   }
 }

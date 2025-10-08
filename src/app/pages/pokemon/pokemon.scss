@@ -1,5 +1,5 @@
 .pokemon-page {
-  padding-top: 5rem; // Agregar más espacio arriba
+  padding-top: 7rem; // Más separación con el header
   background: #f8f9fa;
   min-height: calc(100vh - 80px);
 }
@@ -19,7 +19,7 @@
 .generations-bar {
   background: #473822;
   margin: -2rem -2rem 2rem -2rem;
-  margin-top: -3rem; // Ajustar el margen negativo para compensar el padding-top
+  margin-top: -5rem; // Ajustar el margen negativo para compensar el padding-top aumentado
   padding: 1rem 0;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
@@ -65,6 +65,114 @@
   background: #f5d05f;
   color: #473822;
   box-shadow: 0 2px 8px rgba(245, 208, 95, 0.3);
+}
+
+// Dropdown Mobile
+.generations-dropdown {
+  display: none;
+  position: relative;
+  max-width: 200px;
+  margin: 0 auto;
+}
+
+// Desktop: mostrar lista normal, ocultar dropdown
+@media (min-width: 769px) {
+  .generations-list.desktop {
+    display: flex;
+  }
+
+  .generations-dropdown.mobile {
+    display: none;
+  }
+}
+
+.dropdown-toggle {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #5b85ce;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-toggle:hover {
+  background: #f5d05f;
+  color: #473822;
+  transform: translateY(-2px);
+}
+
+.dropdown-toggle.active {
+  background: #f5d05f;
+  color: #473822;
+  box-shadow: 0 4px 12px rgba(245, 208, 95, 0.3);
+}
+
+.dropdown-arrow {
+  transition: transform 0.3s ease;
+  font-size: 0.8rem;
+}
+
+.dropdown-arrow.rotated {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+}
+
+.dropdown-menu.open {
+  max-height: 300px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  color: #473822;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: #f8f9fa;
+  color: #5b85ce;
+}
+
+.dropdown-item.active {
+  background: #f5d05f;
+  color: #473822;
+  font-weight: 600;
 }
 
 // Pokemon Content
@@ -281,13 +389,22 @@
 @media (max-width: 768px) {
   .pokemon-page {
     padding: 1rem;
-    padding-top: 2rem; // Menos padding en móviles
-    margin-top: 10px; // Menos margen en móviles
+    padding-top: 4rem; // Más separación con el header en móviles
+    margin-top: 10px;
   }
 
   .generations-bar {
     margin: -1rem -1rem 1rem -1rem;
-    margin-top: -2rem; // Ajustar para móviles
+    margin-top: -4rem; // Ajustar para móviles con más separación
+  }
+
+  // Ocultar lista desktop y mostrar dropdown mobile
+  .generations-list.desktop {
+    display: none;
+  }
+
+  .generations-dropdown.mobile {
+    display: block;
   }
 
   .generations-list {
