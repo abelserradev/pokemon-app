@@ -124,18 +124,18 @@ main {
 }
 
 .feature-card {
-  width: 220px; /* Reducir un poco más el ancho para que quepan las 3 */
-  height: 200px;
+  width: 240px; /* Agrandar ligeramente las cards */
+  height: 220px; /* Agrandar ligeramente la altura */
   background: #473822;
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
-  overflow: visible; /* Permitir que el icono se vea completamente */
+  overflow: hidden;
   border-radius: 20px;
   text-align: center;
-  padding: 20px 15px 15px 15px; /* Más padding arriba para el icono */
+  padding: 15px;
   box-sizing: border-box;
   flex-shrink: 0; /* Evitar que se contraigan */
 }
@@ -194,17 +194,6 @@ main {
   z-index: 1;
   position: relative;
   margin: 0 0 0.8rem 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 50px; /* Altura mínima para el icono */
-
-  img {
-    max-width: 60px;
-    max-height: 60px;
-    object-fit: contain;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-  }
 }
 
 // Responsive Design
@@ -250,18 +239,9 @@ main {
 
   .feature-card {
     width: 90%;
-    max-width: 280px;
-    height: 200px; /* Aumentar altura para mejor espaciado */
-    padding: 20px 15px 15px 15px; /* Mejor espaciado */
-  }
-
-  .feature-icon {
-    min-height: 60px; /* Más espacio para el icono en móviles */
-
-    img {
-      max-width: 70px;
-      max-height: 70px;
-    }
+    max-width: 300px;
+    height: 200px;
+    padding: 15px;
   }
 }
 
@@ -304,18 +284,8 @@ main {
 
   .feature-card {
     width: 90%;
-    max-width: 260px;
-    height: 200px; /* Mantener altura consistente */
-    padding: 25px 15px 15px 15px; /* Más padding superior para iconos */
-  }
-
-  .feature-icon {
-    min-height: 65px; /* Aún más espacio en pantallas pequeñas */
-
-    img {
-      max-width: 75px;
-      max-height: 75px;
-    }
+    max-width: 280px;
+    height: 200px;
   }
 }
 
@@ -346,25 +316,6 @@ main {
   }
 
   .feature-card {
-    max-width: 240px;
-    height: 200px;
-    padding: 30px 15px 15px 15px; /* Máximo padding superior para iconos */
-  }
-
-  .feature-icon {
-    min-height: 70px; /* Espacio máximo para iconos en pantallas muy pequeñas */
-
-    img {
-      max-width: 80px;
-      max-height: 80px;
-    }
-  }
-
-  .feature-card h3 {
-    font-size: 1.2rem; /* Ligeramente más pequeño en pantallas muy pequeñas */
-  }
-
-  .feature-card p {
-    font-size: 0.9rem; /* Texto más pequeño pero legible */
+    max-width: 260px;
   }
 }
