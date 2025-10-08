@@ -204,14 +204,6 @@ main {
 
 // Responsive Design
 @media (max-width: 768px) {
-  .hero-section {
-    padding: 6rem 0;
-  }
-
-  .hero-content {
-    padding: 0 0.5rem;
-  }
-
   .hero-title {
     font-size: 2.5rem;
     padding: 0 0.5rem;
@@ -258,13 +250,7 @@ main {
 
 /* Responsive para pantallas muy pequeñas */
 @media (max-width: 480px) {
-  .hero-section {
-    padding: 4rem 0;
-  }
 
-  .hero-content {
-    padding: 0 0.25rem;
-  }
 
   .hero-title {
     font-size: 2rem;
@@ -307,9 +293,7 @@ main {
 
 /* Media query específica para Samsung A16 y similares */
 @media (max-width: 390px) {
-  .hero-content {
-    padding: 0 0.125rem;
-  }
+
 
   .hero-title {
     font-size: 1.8rem;

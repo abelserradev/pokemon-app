@@ -292,7 +292,7 @@
 
 @media (max-width: 768px) {
   .header {
-    padding: 0.5rem 0; /* Aumentar altura del header para móviles */
+    margin-bottom: 2rem; // Separación consistente en móviles
   }
 
   .header-container {
@@ -343,6 +343,10 @@
 }
 
 @media (max-width: 480px) {
+  .header {
+    margin-bottom: 3.5rem; // Menos separación en pantallas muy pequeñas
+  }
+
   .header-container {
     padding: 1.25rem 0.75rem; /* Mantener altura pero reducir padding lateral */
     min-height: 75px; /* Altura mínima para móviles pequeños */
@@ -371,6 +375,10 @@
 }
 
 @media (max-width: 360px) {
+  .header {
+    margin-bottom: 3.5rem; // Menos separación en pantallas muy pequeñas
+  }
+
   .header-container {
     padding: 1rem 0.5rem;
     min-height: 70px;
