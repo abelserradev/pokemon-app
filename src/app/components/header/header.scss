@@ -92,7 +92,7 @@
   background-color: transparent;
   color: #f5d05f;
   border: 2px solid #f5d05f;
-  
+
   &:hover {
     background-color: #f5d05f;
     color: #000000;
@@ -102,7 +102,7 @@
 .btn-register {
   background-color: #f5d05f;
   color: #000000;
-  
+
   &:hover {
     background-color: #5b85ce;
     color: #ffffff;
@@ -199,7 +199,7 @@
   z-index: 999;
   overflow-y: auto;
   transition: right 0.3s ease;
-  
+
   &.open {
     right: 0;
   }
@@ -218,7 +218,7 @@
   border-bottom: 1px solid rgba(245, 208, 95, 0.1);
   font-weight: 500;
   transition: all 0.3s ease;
-  
+
   &:hover {
     color: #f5d05f !important;
   }
@@ -248,7 +248,7 @@
   cursor: pointer;
   font-weight: 500;
   transition: all 0.3s ease;
-  
+
   &:hover {
     background-color: #f5d05f;
     color: #000000;
@@ -267,7 +267,7 @@
   z-index: 998;
   opacity: 0;
   transition: opacity 0.3s ease;
-  
+
   &.active {
     opacity: 1;
   }
@@ -278,11 +278,11 @@
   .header-container {
     padding: 1rem 1.5rem;
   }
-  
+
   .nav-list {
     gap: 1.5rem;
   }
-  
+
   .btn {
     padding: 0.6rem 1.2rem;
   }
@@ -292,34 +292,34 @@
   .header-container {
     padding: 1rem;
   }
-  
+
   .logo-section {
     flex: 0;
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
   }
-  
+
   .logo h1 {
     font-size: 1.5rem;
   }
-  
+
   /* Ocultar navegación y auth en móvil */
-  .nav-section, 
+  .nav-section,
   .auth-section {
     display: none;
   }
-  
+
   /* Mostrar botón hamburguesa */
   .hamburger-btn {
     display: flex;
   }
-  
+
   /* Mostrar menú móvil */
   .mobile-menu {
     display: block;
   }
-  
+
   /* Mostrar overlay */
   .menu-overlay {
     display: block;
@@ -330,19 +330,19 @@
   .header-container {
     padding: 0.75rem 1rem;
   }
-  
+
   .logo h1 {
     font-size: 1.3rem;
   }
-  
+
   .mobile-menu {
     width: 100%;
   }
-  
+
   .hamburger-btn {
     width: 35px;
     height: 35px;
-    
+
     .hamburger-line {
       width: 22px;
     }
