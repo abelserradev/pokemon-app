@@ -159,8 +159,16 @@ export class Team implements OnInit, OnDestroy {
       next: (newPokemon) => {
         console.log('Pokémon agregado al equipo:', newPokemon);
 
-        // Recargar favoritos
-        this.favoritesService.loadFavorites(5).subscribe();
+        // Trackear el Pokémon agregado al equipo
+        this.favoritesService.trackPokemonSearch({
+          pokemon_id: pokemon.id,
+          pokemon_name: pokemon.name,
+          pokemon_sprite: pokemon.sprites?.front_default,
+          pokemon_types: pokemon.types?.map(t => t.type.name)
+        }).subscribe({
+          next: () => console.log(`${pokemon.name} registrado como favorito`),
+          error: (err) => console.error('Error registrando favorito:', err)
+        });
 
         this.error = null;
         this.searchedPokemon = null;
@@ -183,7 +191,7 @@ export class Team implements OnInit, OnDestroy {
         this.error = null;
 
         // Recargar favoritos después de eliminar
-        this.favoritesService.loadFavorites(5).subscribe();
+        this.favoritesService.loadSmartFavorites(5).subscribe();
       },
       error: (error) => {
         console.error('Error al eliminar pokémon:', error);

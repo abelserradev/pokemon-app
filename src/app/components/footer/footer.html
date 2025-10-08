@@ -17,7 +17,7 @@
               <img
                 [src]="favorite.sprite"
                 [alt]="favorite.name"
-                [title]="favorite.name + ' (usado ' + favorite.count + ' veces)'"
+                [title]="favorite.name + ' - Relevancia: ' + favorite.relevance_score.toFixed(1)"
               />
             </div>
           }

@@ -6,6 +6,7 @@ import { PokemonService, Pokemon } from '../../services/pokemon.service';
 import { PokemonCacheService } from '../../services/pokemon-cache.service';
 import { LoadingService, LoadingState } from '../../services/loading.service';
 import { LoadingComponent } from '../../components/loading/loading';
+import { FavoritesService } from '../../services/favorites.service';
 
 
 @Component({
@@ -43,7 +44,8 @@ export class PokemonComponent implements OnInit, OnDestroy {
   constructor(
     private pokemonService: PokemonService,
     private cacheService: PokemonCacheService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private favoritesService: FavoritesService
   ) {}
 
   ngOnInit(): void {
@@ -138,6 +140,9 @@ export class PokemonComponent implements OnInit, OnDestroy {
       this.cacheService.setPokemon(this.selectedGeneration, this.currentPage, this.pokemonList);
 
       this.calculateTotalPages(gen.end - gen.start + 1);
+
+      // Trackear los primeros 3 Pokémon visibles
+      this.trackVisiblePokemon();
     } catch (error) {
       this.error = 'Error al cargar los Pokemon';
       console.error('Error loading Pokemon:', error);
@@ -145,6 +150,28 @@ export class PokemonComponent implements OnInit, OnDestroy {
       this.loading = false;
       this.loadingService.hide();
     }
+  }
+
+  private trackVisiblePokemon(): void {
+    // Trackear solo los primeros 3 Pokémon de la página actual
+    const pokemonToTrack = this.pokemonList.slice(0, 3);
+
+    pokemonToTrack.forEach(pokemon => {
+      if (!pokemon) return;
+
+      const pokemonData = {
+        pokemon_id: pokemon.id,
+        pokemon_name: pokemon.name,
+        pokemon_sprite: pokemon.sprites?.front_default || pokemon.sprites?.other?.['official-artwork']?.front_default,
+        pokemon_types: pokemon.types?.map(t => t.type.name) || []
+      };
+
+      // Registrar visualización (sin bloquear la UI)
+      this.favoritesService.trackPokemonSearch(pokemonData).subscribe({
+        next: () => console.log(`Pokémon ${pokemon.name} registrado en búsquedas`),
+        error: (err) => console.error('Error registrando búsqueda:', err)
+      });
+    });
   }
 
   private calculateTotalPages(totalPokemon: number): void {
