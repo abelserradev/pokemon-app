@@ -2,7 +2,7 @@
   padding: 5rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
-
+  margin-top: 6rem; // Aumentado para separar del header
 }
 
 // Loading
@@ -447,6 +447,7 @@
   .training-page {
     padding: 1rem;
     min-height: calc(100vh - 80px); // Ajustar para header más grande
+    margin-top: 4rem; // Aumentado para móviles
   }
 
   .training-header {
@@ -566,6 +567,7 @@
 @media (max-width: 480px) {
   .training-page {
     padding: 0.5rem;
+    margin-top: 3rem; // Ajustado para pantallas muy pequeñas
   }
 
   .training-content {
@@ -619,6 +621,7 @@
 @media (max-width: 360px) {
   .training-page {
     padding: 0.25rem;
+    margin-top: 2.5rem; // Ajustado para pantallas extra pequeñas
   }
 
   .training-content {

@@ -173,9 +173,21 @@ export class Team implements OnInit, OnDestroy {
   }
 
   removeFromTeam(teamPokemonId: number): void {
+    // Obtener el Pokémon que se va a eliminar para poder eliminar su sesión de entrenamiento
+    const pokemonToRemove = this.teamPokemon.find(p => p.id === teamPokemonId);
+    
     this.teamService.removeFromTeam(teamPokemonId).subscribe({
       next: () => {
         this.error = null;
+
+        // Si hay un Pokémon eliminado, eliminar también su sesión de entrenamiento
+        if (pokemonToRemove) {
+          this.trainingService.resetTrainingForPokemon(pokemonToRemove.pokemon_id).subscribe({
+            error: () => {
+              // Error silencioso si no se puede eliminar la sesión de entrenamiento
+            }
+          });
+        }
 
         // Recargar favoritos después de eliminar
         this.favoritesService.loadSmartFavorites(5).subscribe();

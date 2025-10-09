@@ -298,4 +298,20 @@ export class TrainingService {
       })
     );
   }
+
+  // Resetear entrenamiento por ID de Pokémon
+  resetTrainingForPokemon(pokemonId: number): Observable<any> {
+    const sessions = this.trainingSessionsSubject.value;
+    const sessionToDelete = sessions.find(s => s.pokemonId === pokemonId);
+    
+    if (sessionToDelete && sessionToDelete.id) {
+      return this.resetTraining(sessionToDelete.id);
+    } else {
+      // Si no hay sesión, devolver observable vacío
+      return new Observable(observer => {
+        observer.next(null);
+        observer.complete();
+      });
+    }
+  }
 }
