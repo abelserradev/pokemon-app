@@ -54,16 +54,13 @@ body, p, span, div, button, input, select, textarea {
    RESET Y CONFIGURACIÓN BASE
    =================================== */
 
-* {
+body {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-}
-
-body {
   font-family: var(--font-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box;
 }
 
 /* ===================================

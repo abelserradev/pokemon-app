@@ -35,6 +35,8 @@
   margin-bottom: 1rem;
   text-align: center;
   font-size: 1.8rem;
+  word-wrap: break-word; // Permitir que el texto se ajuste
+  overflow-wrap: break-word; // Compatibilidad
 }
 
 .generations-list {
@@ -395,8 +397,19 @@
   }
 
   .generations-bar {
-    margin: 1rem 1rem 1rem 1rem;
+    margin: 1rem 0.5rem 1rem 0.5rem; // Reducir márgenes laterales
     margin-top: 3rem; // Ajustar para móviles con más separación
+    padding: 1rem 0.5rem; // Reducir padding interno
+  }
+
+  .generations-container {
+    padding: 0 1rem; // Reducir padding lateral en móviles
+  }
+
+  .generations-container h2 {
+    font-size: 1.3rem; // Reducir tamaño del título en móviles
+    margin-bottom: 0.75rem;
+    padding: 0 0.5rem; // Agregar padding lateral al título
   }
 
   // Ocultar lista desktop y mostrar dropdown mobile
@@ -429,5 +442,33 @@
   .page-btn {
     padding: 0.4rem 0.8rem;
     font-size: 0.9rem;
+  }
+}
+
+// Media query para pantallas muy pequeñas (Samsung A16 y similares)
+@media (max-width: 430px) {
+  .generations-bar {
+    margin: 1rem 0.25rem; // Márgenes mínimos
+    padding: 0.75rem 0.25rem; // Padding mínimo
+  }
+
+  .generations-container {
+    padding: 0 0.5rem; // Padding muy reducido
+  }
+
+  .generations-container h2 {
+    font-size: 1.1rem; // Título más pequeño
+    margin-bottom: 0.5rem;
+    padding: 0 0.25rem;
+  }
+
+  .dropdown-toggle {
+    padding: 0.6rem 0.75rem; // Botón más compacto
+    font-size: 0.9rem;
+  }
+
+  .pokemon-grid {
+    grid-template-columns: 1fr; // Una sola columna en móviles muy pequeños
+    gap: 0.75rem;
   }
 }
