@@ -72,7 +72,7 @@ export class Team implements OnInit, OnDestroy {
               this.pokemonCache.set(teamPoke.pokemon_id, pokemon);
             }
           } catch (error) {
-            console.error('Error loading pokemon data:', error);
+            // Error silencioso para producción
           }
         }
 
@@ -86,11 +86,7 @@ export class Team implements OnInit, OnDestroy {
 
   private loadTeamFromBackend(): void {
     this.teamService.loadTeam().subscribe({
-      next: (team) => {
-        console.log('Equipo cargado desde el backend:', team);
-      },
       error: (error) => {
-        console.error('Error al cargar el equipo:', error);
         if (error.status === 401) {
           this.router.navigate(['/login']);
         } else {
@@ -128,7 +124,6 @@ export class Team implements OnInit, OnDestroy {
     } catch (error) {
       this.searchedPokemon = null;
       this.error = 'Error al buscar el Pokemon';
-      console.error('Error searching Pokemon:', error);
     } finally {
       this.loading = false;
       this.loadingService.hide();
@@ -156,9 +151,7 @@ export class Team implements OnInit, OnDestroy {
     const pokemon = this.searchedPokemon;
 
     this.teamService.addToTeam(pokemon, selectedAbility).subscribe({
-      next: (newPokemon) => {
-        console.log('Pokémon agregado al equipo:', newPokemon);
-
+      next: () => {
         // Trackear el Pokémon agregado al equipo
         this.favoritesService.trackPokemonSearch({
           pokemon_id: pokemon.id,
@@ -166,8 +159,7 @@ export class Team implements OnInit, OnDestroy {
           pokemon_sprite: pokemon.sprites?.front_default,
           pokemon_types: pokemon.types?.map(t => t.type.name)
         }).subscribe({
-          next: () => console.log(`${pokemon.name} registrado como favorito`),
-          error: (err) => console.error('Error registrando favorito:', err)
+          error: () => {}
         });
 
         this.error = null;
@@ -175,41 +167,31 @@ export class Team implements OnInit, OnDestroy {
         this.searchTerm = '';
       },
       error: (error) => {
-        console.error('Error al agregar pokémon:', error);
         this.error = error.error?.detail || 'Error al agregar el pokémon al equipo';
       }
     });
   }
 
   removeFromTeam(teamPokemonId: number): void {
-    console.log('Intentando eliminar pokémon con BD ID:', teamPokemonId);
-    console.log('Equipo actual:', this.teamPokemon);
-
     this.teamService.removeFromTeam(teamPokemonId).subscribe({
       next: () => {
-        console.log('Pokémon eliminado del equipo exitosamente');
         this.error = null;
 
         // Recargar favoritos después de eliminar
         this.favoritesService.loadSmartFavorites(5).subscribe();
       },
       error: (error) => {
-        console.error('Error al eliminar pokémon:', error);
         this.error = error.error?.detail || 'Error al eliminar el pokémon del equipo';
       }
     });
   }
 
   onAbilityChange(teamPokemonId: number, abilityName: string): void {
-    console.log(`Cambiando habilidad para teamPokemonId: ${teamPokemonId} a: ${abilityName}`);
-
     this.teamService.updateAbility(teamPokemonId, abilityName).subscribe({
-      next: (updatedPokemon) => {
-        console.log('Habilidad actualizada exitosamente:', updatedPokemon);
-        this.error = null; // Limpiar errores previos
+      next: () => {
+        this.error = null;
       },
       error: (error) => {
-        console.error('Error al actualizar habilidad:', error);
         this.error = error.message || 'Error al actualizar la habilidad';
       }
     });

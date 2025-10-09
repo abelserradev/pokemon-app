@@ -55,7 +55,6 @@ export class FavoritesService {
       { headers: this.getHeaders() }
     ).pipe(
       tap(favorites => {
-        console.log('Favoritos inteligentes recibidos del backend:', favorites);
         // Transformar para compatibilidad con templates existentes
         const transformedFavorites = favorites.map(f => ({
           ...f,
@@ -65,7 +64,6 @@ export class FavoritesService {
         this.favoritesSubject.next(transformedFavorites);
       }),
       catchError(error => {
-        console.error('Error cargando favoritos inteligentes:', error);
         this.favoritesSubject.next([]);
         throw error;
       })
@@ -86,13 +84,11 @@ export class FavoritesService {
       data,
       { headers: this.getHeaders() }
     ).pipe(
-      tap((result) => {
-        console.log(`Búsqueda registrada para ${data.pokemon_name}:`, result);
+      tap(() => {
         // Recargar favoritos después de registrar búsqueda
         this.loadSmartFavorites(5).subscribe();
       }),
       catchError(error => {
-        console.error('Error registrando búsqueda:', error);
         throw error;
       })
     );

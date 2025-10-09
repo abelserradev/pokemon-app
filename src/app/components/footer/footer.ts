@@ -49,7 +49,6 @@ export class Footer implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.favoritesService.favorites$.subscribe(favorites => {
         this.topFavorites = favorites;
-        console.log('Favoritos actualizados en footer:', favorites);
       })
     );
   }
@@ -60,11 +59,7 @@ export class Footer implements OnInit, OnDestroy {
 
   private loadSmartFavorites() {
     this.favoritesService.loadSmartFavorites(5).subscribe({
-      next: (favorites) => {
-        console.log('Favoritos inteligentes cargados:', favorites);
-      },
-      error: (error) => {
-        console.error('Error al cargar favoritos:', error);
+      error: () => {
         this.topFavorites = [];
       }
     });

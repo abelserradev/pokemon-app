@@ -145,7 +145,6 @@ export class PokemonComponent implements OnInit, OnDestroy {
       this.trackVisiblePokemon();
     } catch (error) {
       this.error = 'Error al cargar los Pokemon';
-      console.error('Error loading Pokemon:', error);
     } finally {
       this.loading = false;
       this.loadingService.hide();
@@ -168,8 +167,7 @@ export class PokemonComponent implements OnInit, OnDestroy {
 
       // Registrar visualización (sin bloquear la UI)
       this.favoritesService.trackPokemonSearch(pokemonData).subscribe({
-        next: () => console.log(`Pokémon ${pokemon.name} registrado en búsquedas`),
-        error: (err) => console.error('Error registrando búsqueda:', err)
+        error: () => {}
       });
     });
   }
