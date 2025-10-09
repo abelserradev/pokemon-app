@@ -24,7 +24,6 @@ export class Register {
         this.router.navigate(['/login']);
       },
       error: (error) => {
-        console.error('Error en registro:', error);
         this.errorMessage = error.error?.detail || error.message || 'Error en el registro';
       }
     });

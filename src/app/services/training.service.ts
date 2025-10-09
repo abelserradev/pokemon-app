@@ -32,40 +32,31 @@ export class TrainingService {
   // Helper para obtener valores de stats con cualquier formato
   private getStat(stats: any, key: string): number {
     if (!stats) {
-      console.log(`getStat: stats is null/undefined for key ${key}`);
       return 0;
     }
 
-    console.log(`getStat: Buscando '${key}' en:`, stats);
-
     // 1. Intentar con la key exacta primero
     if (stats[key] !== undefined) {
-      console.log(`  → Encontrado con key exacta: ${stats[key]}`);
       return stats[key];
     }
 
     // 2. Intentar con guión (backend format: special-attack)
     const dashKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
     if (stats[dashKey] !== undefined) {
-      console.log(`  → Encontrado con dashKey '${dashKey}': ${stats[dashKey]}`);
       return stats[dashKey];
     }
 
     // 3. Intentar formato snake_case sin guión
     const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
     if (stats[snakeKey] !== undefined) {
-      console.log(`  → Encontrado con snakeKey '${snakeKey}': ${stats[snakeKey]}`);
       return stats[snakeKey];
     }
 
-    console.log(`  → No encontrado, retornando 0`);
     return 0;
   }
 
   // Transformar sesión del backend al formato frontend
   private transformSession(s: any): TrainingSession {
-    console.log('========== TRANSFORMANDO SESIÓN ==========');
-    console.log('Datos originales del backend:', s);
 
     const baseStats: PokemonStats = {
       hp: this.getStat(s.base_stats, 'hp'),
@@ -108,9 +99,6 @@ export class TrainingService {
       completedAt: s.completed_at ? new Date(s.completed_at) : undefined
     };
 
-    console.log('Sesión transformada:', transformed);
-    console.log('==========================================');
-
     return transformed;
   }
 
@@ -118,11 +106,7 @@ export class TrainingService {
   loadTrainingSessions(): Observable<TrainingSession[]> {
     return this.http.get<any[]>(`${this.apiUrl}/training`).pipe(
       tap(sessions => {
-        console.log('Sesiones recibidas del backend:', sessions);
-
         const transformedSessions: TrainingSession[] = sessions.map(s => this.transformSession(s));
-
-        console.log('Sesiones transformadas:', transformedSessions);
         this.trainingSessionsSubject.next(transformedSessions);
       })
     );
@@ -164,11 +148,8 @@ export class TrainingService {
       training_points: this.MAX_TOTAL_EVS
     };
 
-    console.log('Creando sesión con datos:', sessionData);
-
     return this.http.post<any>(`${this.apiUrl}/training`, sessionData).pipe(
       tap((session: any) => {
-        console.log('Sesión creada por backend:', session);
         const transformedSession = this.transformSession(session);
 
         const currentSessions = this.trainingSessionsSubject.value;
@@ -269,22 +250,15 @@ export class TrainingService {
 
     return this.http.put<any>(`${this.apiUrl}/training/${sessionId}`, updateData).pipe(
       tap((updatedSession: any) => {
-        console.log('========== APLICAR ENTRENAMIENTO ==========');
-        console.log('Respuesta del backend:', updatedSession);
-
         const transformedSession = this.transformSession(updatedSession);
-        console.log('Sesión transformada:', transformedSession);
 
         const sessions = this.trainingSessionsSubject.value;
         const index = sessions.findIndex(s => s.id === sessionId);
-        console.log('Índice de sesión:', index);
 
         if (index !== -1) {
           sessions[index] = transformedSession;
           this.trainingSessionsSubject.next([...sessions]);
-          console.log('BehaviorSubject actualizado con sesiones:', sessions);
         }
-        console.log('==========================================');
       })
     );
   }

@@ -33,7 +33,6 @@ export class TeamService {
   loadTeam(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/team`).pipe(
       tap(team => {
-        console.log('Equipo cargado:', team);
         this.teamSubject.next(team);
       })
     );
@@ -57,11 +56,8 @@ export class TeamService {
       }
     };
 
-    console.log('Enviando pokémon al backend:', teamPokemon);
-
     return this.http.post<any>(`${this.apiUrl}/team`, teamPokemon).pipe(
       tap(newPokemon => {
-        console.log('Pokémon agregado por backend:', newPokemon);
         const currentTeam = this.teamSubject.value;
         const enrichedPokemon = {
           ...newPokemon,
@@ -74,23 +70,16 @@ export class TeamService {
   }
 
   removeFromTeam(teamPokemonId: number): Observable<any> {
-    console.log('Servicio: Eliminando pokémon con ID de BD:', teamPokemonId);
-
     return this.http.delete(`${this.apiUrl}/team/${teamPokemonId}`).pipe(
       tap(() => {
-        console.log('DELETE exitoso, actualizando estado local');
         const currentTeam = this.teamSubject.value;
         const updatedTeam = currentTeam.filter(p => p.id !== teamPokemonId);
-        console.log('Equipo actualizado:', updatedTeam);
         this.teamSubject.next(updatedTeam);
       })
     );
   }
 
   updateAbility(teamPokemonId: number, ability: string): Observable<any> {
-    // Por ahora, actualizar solo localmente hasta que el backend implemente el endpoint
-    console.log(`Actualizando habilidad para teamPokemonId: ${teamPokemonId}, habilidad: ${ability}`);
-
     const currentTeam = this.teamSubject.value;
     const index = currentTeam.findIndex(p => p.id === teamPokemonId);
 
@@ -101,15 +90,12 @@ export class TeamService {
         selectedAbility: ability
       };
       this.teamSubject.next([...currentTeam]);
-      console.log('Habilidad actualizada localmente:', currentTeam[index]);
 
-      // Retornar un observable que se complete inmediatamente
       return new Observable(observer => {
         observer.next(currentTeam[index]);
         observer.complete();
       });
     } else {
-      // Retornar un observable con error si no se encuentra el Pokémon
       return new Observable(observer => {
         observer.error(new Error(`No se encontró el Pokémon con ID: ${teamPokemonId}`));
       });

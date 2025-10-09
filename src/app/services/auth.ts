@@ -59,8 +59,8 @@ export class Auth {
     });
 
     return this.http.post<LoginResponse>(
-      `${this.apiUrl}/login`, 
-      body.toString(), 
+      `${this.apiUrl}/login`,
+      body.toString(),
       { headers }
     ).pipe(
       tap(response => {
@@ -122,7 +122,6 @@ export class Auth {
   }
 
   private handleError(error: any): Observable<never> {
-    console.error('Error en la petición:', error);
     return throwError(() => error);
   }
 }

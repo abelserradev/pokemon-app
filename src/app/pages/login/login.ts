@@ -23,12 +23,10 @@ export class Login {
     this.errorMessage = ''; // Limpiar mensaje de error anterior
 
     this.authService.login(this.user).subscribe({
-      next: (response: any) => {
-        console.log('Usuario logueado:', response.user);
+      next: () => {
         this.router.navigate(['/home']);
       },
       error: (error: any) => {
-        console.error('Error en login:', error);
         this.errorMessage = error.error?.detail || error.message || 'Error en el login';
       }
     });

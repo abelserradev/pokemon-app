@@ -55,7 +55,6 @@ export class Training implements OnInit, OnDestroy {
     // Suscribirse a cambios en el equipo
     this.subscriptions.add(
       this.teamService.team$.subscribe(team => {
-        console.log('Equipo actualizado en Training:', team);
         if (team.length > 0) {
           this.teamPokemon = team;
           // Siempre recargar sesiones cuando cambie el equipo
@@ -77,19 +76,15 @@ export class Training implements OnInit, OnDestroy {
   private loadTeamAndSessions(): void {
     this.teamService.loadTeam().subscribe({
       next: (team) => {
-        console.log('Equipo cargado desde backend:', team);
         this.teamPokemon = team;
         if (team.length > 0) {
           this.initializeTrainingSessions();
         } else {
-          // Limpiar datos si no hay equipo
           this.trainingSessions = [];
           this.currentSession = null;
         }
       },
-      error: (error) => {
-        console.error('Error al cargar el equipo:', error);
-        // En caso de error, limpiar datos
+      error: () => {
         this.teamPokemon = [];
         this.trainingSessions = [];
         this.currentSession = null;
@@ -101,35 +96,24 @@ export class Training implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.trainingService.loadTrainingSessions().subscribe({
         next: () => {
-          // Obtener las sesiones transformadas desde el servicio
           const transformedSessions = this.trainingService.currentSessions;
-          console.log('Sesiones desde currentSessions:', transformedSessions);
 
-          // Filtrar solo las sesiones que corresponden a Pokémon en el equipo actual
           const currentTeamIds = this.teamPokemon.map(p => p.pokemon_id);
           const validSessions = transformedSessions.filter(session =>
             currentTeamIds.includes(session.pokemonId)
           );
 
-          console.log('Sesiones filtradas por equipo actual:', validSessions);
           this.trainingSessions = validSessions;
 
           if (validSessions.length > 0) {
             this.currentSession = validSessions[0];
             this.currentPokemonIndex = 0;
-            console.log('currentSession asignada:', this.currentSession);
-            console.log('pokemonSprite:', this.currentSession?.pokemonSprite);
-            console.log('pokemonTypes:', this.currentSession?.pokemonTypes);
-            console.log('baseStats:', this.currentSession?.baseStats);
-            console.log('currentEVs:', this.currentSession?.currentEVs);
           } else {
-            console.log('No hay sesiones de entrenamiento válidas para el equipo actual');
             this.currentSession = null;
             this.currentPokemonIndex = 0;
           }
         },
-        error: (error) => {
-          console.error('Error al cargar sesiones de entrenamiento:', error);
+        error: () => {
           this.trainingSessions = [];
           this.currentSession = null;
           this.currentPokemonIndex = 0;
@@ -209,7 +193,6 @@ export class Training implements OnInit, OnDestroy {
     }
 
     if (!this.currentSession.id) {
-      console.error('No hay sesión de entrenamiento válida');
       return;
     }
 
@@ -218,17 +201,12 @@ export class Training implements OnInit, OnDestroy {
       this.trainingForm.value as TrainingForm,
       this.currentSession.currentEVs
     ).subscribe({
-      next: (response: any) => {
-        console.log('Respuesta de applyTraining:', response);
-
-        // Obtener la sesión actualizada desde el servicio
+      next: () => {
         const updatedSession = this.trainingService.currentSessions.find(s => s.id === this.currentSession!.id);
 
         if (updatedSession) {
-          console.log('Sesión actualizada obtenida del servicio:', updatedSession);
           this.currentSession = updatedSession;
 
-          // Actualizar también en la lista
           const index = this.trainingSessions.findIndex(s => s.id === updatedSession.id);
           if (index !== -1) {
             this.trainingSessions[index] = updatedSession;
@@ -240,8 +218,7 @@ export class Training implements OnInit, OnDestroy {
 
         alert('¡Entrenamiento aplicado exitosamente!');
       },
-      error: (error: any) => {
-        console.error('Error al aplicar entrenamiento:', error);
+      error: () => {
         alert('Error al aplicar el entrenamiento');
       }
     });
@@ -253,9 +230,7 @@ export class Training implements OnInit, OnDestroy {
         next: () => {
           this.initializeTrainingSessions();
         },
-        error: (error) => {
-          console.error('Error al resetear entrenamiento:', error);
-        }
+        error: () => {}
       });
     }
   }
