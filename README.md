@@ -124,7 +124,20 @@ cd pokemon-front/Frontend/pokemon-app
 npm install
 ```
 
-### 3. Configurar variables de entorno
+### 3. Instalar la fuente Pokemon Solid (Opcional)
+
+Para obtener la apariencia completa del proyecto, descarga e instala la fuente Pokemon Solid:
+
+1. Ve a: https://www.fontspace.com/pokemon-solid-font-f13844
+2. Descarga el archivo ZIP de la fuente
+3. Extrae el archivo `.ttf` 
+4. Copia el archivo a `public/fonts/PokemonSolid.ttf`
+
+Para más detalles, consulta `public/fonts/README.md`
+
+**Nota:** Si no instalas la fuente, la aplicación funcionará normalmente con las fuentes del sistema.
+
+### 4. Configurar variables de entorno
 
 Crear archivo `src/environments/environment.ts`:
 
@@ -563,6 +576,7 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 - **FastAPI** - Framework backend
 - **Vercel** - Hosting frontend
 - **Railway** - Hosting backend
+- **Pokemon Solid Font** - Fuente tipográfica por [Fonts & Things](https://www.fontspace.com/pokemon-solid-font-f13844) (Licencia CC BY)
 
 ## 📞 Soporte
 

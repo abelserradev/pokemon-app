@@ -165,7 +165,6 @@ export class PokemonComponent implements OnInit, OnDestroy {
         pokemon_types: pokemon.types?.map(t => t.type.name) || []
       };
 
-      // Registrar visualización (sin bloquear la UI)
       this.favoritesService.trackPokemonSearch(pokemonData).subscribe({
         error: () => {}
       });
@@ -188,7 +187,6 @@ export class PokemonComponent implements OnInit, OnDestroy {
     return statNames[statName] || statName;
   }
 
-  // Métodos para el dropdown
   toggleDropdown(): void {
     this.isDropdownOpen = !this.isDropdownOpen;
   }
