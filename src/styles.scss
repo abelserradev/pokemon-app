@@ -1,75 +1,11 @@
 /* ===================================
-   FUENTE PERSONALIZADA - POKEMON SOLID
-   =================================== */
-
-/* Fuente Pokemon Solid
-   Licencia: Creative Commons Attribution (CC BY)
-   Autor: Fonts & Things
-   URL: https://www.fontspace.com/pokemon-solid-font-f13844
-*/
-
-@font-face {
-  font-family: 'Pokemon Solid';
-  src: url('/fonts/PokemonSolid.ttf') format('truetype'),
-       url('/fonts/PokemonSolid.woff2') format('woff2'),
-       url('/fonts/PokemonSolid.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* ===================================
-   VARIABLES DE FUENTES
-   =================================== */
-
-:root {
-  --font-pokemon: 'Pokemon Solid', 'Arial Black', sans-serif;
-  --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-}
-
-/* ===================================
-   ESTILOS GLOBALES CON FUENTE POKEMON
-   =================================== */
-
-/* Títulos principales con fuente Pokemon */
-h1, h2 {
-  font-family: var(--font-pokemon);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
-
-/* Resto de elementos con fuente normal */
-body, p, span, div, button, input, select, textarea {
-  font-family: var(--font-primary);
-}
-
-/* Clase auxiliar para aplicar fuente Pokemon manualmente */
-.pokemon-font {
-  font-family: var(--font-pokemon);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
-
-/* ===================================
    RESET Y CONFIGURACIÓN BASE
    =================================== */
 
 body {
   margin: 0;
   padding: 0;
-  font-family: var(--font-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   box-sizing: border-box;
 }
-
-/* ===================================
-   ATRIBUCIÓN DE FUENTE (Requerido por CC BY)
-   =================================== */
-
-/* 
-ATRIBUCIÓN: 
-La fuente "Pokemon Solid" es propiedad de Fonts & Things
-y se utiliza bajo licencia Creative Commons Attribution (CC BY).
-Fuente: https://www.fontspace.com/pokemon-solid-font-f13844
-*/
