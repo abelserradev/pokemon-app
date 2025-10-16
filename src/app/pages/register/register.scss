@@ -86,6 +86,53 @@
 .btn-link:hover {
   color: #ffeba7;
 }
+
+.password-requirements {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 0.5rem;
+  
+  .requirements-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4FB6BE;
+  }
+  
+  .requirements-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    
+    li {
+      font-size: 0.813rem;
+      padding: 0.25rem 0;
+      transition: color 0.3s ease;
+      
+      &.valid {
+        color: #4ade80;
+      }
+      
+      &.invalid {
+        color: #f87171;
+      }
+    }
+  }
+}
+
+.error-text {
+  display: block;
+  color: #f87171;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  padding-left: 0.5rem;
+}
+
+.input-field.invalid {
+  border-color: #f87171;
+}
+
 @media (max-width: 768px) {
   .card {
     width: calc(100% - 2rem); // Ancho completo menos márgenes

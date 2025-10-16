@@ -1,8 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, AsyncPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { firstValueFrom, catchError, of, Subscription } from 'rxjs';
-import { PokemonService, Pokemon } from '../../services/pokemon.service';
+import { PokemonService, Pokemon, PokemonSuggestion } from '../../services/pokemon.service';
 import { PokemonCacheService } from '../../services/pokemon-cache.service';
 import { LoadingService, LoadingState } from '../../services/loading.service';
 import { LoadingComponent } from '../../components/loading/loading';
@@ -12,7 +13,7 @@ import { FavoritesService } from '../../services/favorites.service';
 @Component({
   selector: 'app-pokemon',
   standalone: true,
-  imports: [CommonModule, AsyncPipe, LoadingComponent],
+  imports: [CommonModule, AsyncPipe, LoadingComponent, FormsModule],
   templateUrl: './pokemon.html',
   styleUrl: './pokemon.scss'
 })
@@ -40,6 +41,11 @@ export class PokemonComponent implements OnInit, OnDestroy {
   loadingState$!: Observable<LoadingState>;
   isDropdownOpen = false;
   private subscriptions = new Subscription();
+  searchQuery = '';
+  searchSuggestions: PokemonSuggestion[] = [];
+  showSuggestions = false;
+  searchedPokemon: Pokemon | null = null;
+  isSearchMode = false;
 
   constructor(
     private pokemonService: PokemonService,
@@ -87,7 +93,7 @@ export class PokemonComponent implements OnInit, OnDestroy {
   async selectGeneration(generation: number): Promise<void> {
     this.selectedGeneration = generation;
     this.currentPage = 1;
-    this.isDropdownOpen = false; // Cerrar dropdown al seleccionar
+    this.isDropdownOpen = false;
     this.cacheService.setCurrentGeneration(generation);
     this.cacheService.setCurrentPage(1);
     await this.loadPokemon();
@@ -149,6 +155,95 @@ export class PokemonComponent implements OnInit, OnDestroy {
       this.loading = false;
       this.loadingService.hide();
     }
+  }
+  onSearchInput(): void {
+    if (this.searchQuery.length < 2) {
+      this.searchSuggestions = [];
+      this.showSuggestions = false;
+      return;
+    }
+
+    this.searchSuggestions = this.pokemonService.searchPokemon(this.searchQuery, 8);
+    this.showSuggestions = this.searchSuggestions.length > 0;
+  }
+
+  // Seleccionar un pokémon de las sugerencias
+  async selectSuggestion(suggestion: PokemonSuggestion): Promise<void> {
+    this.searchQuery = suggestion.name;
+    this.showSuggestions = false;
+    await this.searchPokemon();
+  }
+
+  // Buscar pokémon específico
+  async searchPokemon(): Promise<void> {
+    if (!this.searchQuery || this.searchQuery.length < 2) {
+      this.clearSearch();
+      return;
+    }
+
+    this.loading = true;
+    this.error = null;
+    this.loadingService.show('Buscando Pokémon...', '¡Rastreando a ' + this.searchQuery + '!', false);
+
+    try {
+      const pokemon = await firstValueFrom(
+        this.pokemonService.getPokemonByName(this.searchQuery.toLowerCase()).pipe(
+          catchError(() => of(null))
+        )
+      );
+
+      if (pokemon) {
+        this.searchedPokemon = pokemon;
+        this.isSearchMode = true;
+        this.showSuggestions = false;
+
+        // Trackear búsqueda
+        const pokemonData = {
+          pokemon_id: pokemon.id,
+          pokemon_name: pokemon.name,
+          pokemon_sprite: pokemon.sprites?.front_default || pokemon.sprites?.other?.['official-artwork']?.front_default,
+          pokemon_types: pokemon.types?.map(t => t.type.name) || []
+        };
+
+        this.favoritesService.trackPokemonSearch(pokemonData).subscribe({
+          error: () => {}
+        });
+      } else {
+        this.error = 'No se encontró el Pokémon. Intenta con otro nombre.';
+      }
+    } catch (error) {
+      this.error = 'Error al buscar el Pokémon';
+    } finally {
+      this.loading = false;
+      this.loadingService.hide();
+    }
+  }
+
+  // Limpiar búsqueda y volver al modo normal
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.searchedPokemon = null;
+    this.searchSuggestions = [];
+    this.showSuggestions = false;
+    this.isSearchMode = false;
+    this.error = null;
+  }
+
+  // Manejar Enter en el input de búsqueda
+  onSearchKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.searchPokemon();
+    } else if (event.key === 'Escape') {
+      this.showSuggestions = false;
+    }
+  }
+
+  // Cerrar sugerencias al hacer click fuera
+  closeSuggestions(): void {
+    setTimeout(() => {
+      this.showSuggestions = false;
+    }, 200);
   }
 
   private trackVisiblePokemon(): void {

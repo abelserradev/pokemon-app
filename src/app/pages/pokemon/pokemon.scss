@@ -1,7 +1,24 @@
+// ============================================
+// ESTILOS NORMALES (Desktop y general)
+// ============================================
+
+// Reset para prevenir scroll horizontal
+* {
+  box-sizing: border-box;
+}
+
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 .pokemon-page {
   padding-top: 7rem; // Más separación con el header
   background: #f8f9fa;
   min-height: calc(100vh - 80px);
+  overflow-x: hidden; // Prevenir scroll horizontal
+  width: 100%;
+  max-width: 100vw;
 }
 
 .pokemon-loading {
@@ -18,16 +35,20 @@
 // Generations Bar
 .generations-bar {
   background: #473822;
-  margin: -2rem -2rem 2rem -2rem;
-  margin-top: -3rem; // Ajustar el margen negativo para compensar el padding-top aumentado
+  margin: -3rem 0 2rem 0; // Solo márgenes verticales, sin laterales negativos
   padding: 1rem 0;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
 }
 
 .generations-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 2rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .generations-container h2 {
@@ -178,10 +199,126 @@
   font-weight: 600;
 }
 
+// Search Bar Container
+.search-bar-container {
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  padding: 1.5rem 1rem;
+  background: linear-gradient(135deg, #473822 0%, #2d2418 100%);
+  border-radius: 15px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.search-bar {
+  position: relative;
+  display: flex;
+  gap: 0.5rem;
+  max-width: 600px;
+  margin: 0 auto;
+
+  .search-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 2px solid #4FB6BE;
+    border-radius: 25px;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+    background: white;
+
+    &:focus {
+      border-color: #014471;
+      box-shadow: 0 0 0 3px rgba(79, 182, 190, 0.2);
+    }
+
+    &::placeholder {
+      color: #999;
+    }
+  }
+
+  .clear-button,
+  .search-button {
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 50%;
+    background: #4FB6BE;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      background: #014471;
+      transform: scale(1.05);
+    }
+  }
+
+  .clear-button {
+    background: #EBBA68;
+    
+    &:hover {
+      background: #F5D05F;
+    }
+  }
+}
+
+// Sugerencias desplegables
+.suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 60px;
+  margin-top: 0.5rem;
+  background: white;
+  border: 2px solid #4FB6BE;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+
+  .suggestion-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: #f0f9fa;
+    }
+
+    &:not(:last-child) {
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .suggestion-id {
+      color: #999;
+      font-size: 0.875rem;
+      min-width: 40px;
+    }
+
+    .suggestion-name {
+      color: #014471;
+      font-weight: 500;
+    }
+  }
+}
+
 // Pokemon Content
 .pokemon-content {
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 1rem;
 }
 
 .loading {
@@ -388,22 +525,83 @@
   transform: none;
 }
 
-// Responsive Design
+// Resultado de búsqueda
+.search-result {
+  .back-button {
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    background: #4FB6BE;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: #014471;
+      transform: translateX(-5px);
+    }
+  }
+
+  .pokemon-card.featured {
+    max-width: 500px;
+    margin: 0 auto;
+    transform: scale(1.05);
+  }
+
+  .pokemon-number {
+    color: #999;
+    font-size: 1.2rem;
+    margin: 0.5rem 0;
+  }
+}
+
+// Error con botón de reintentar
+.error {
+  text-align: center;
+  
+  .retry-button {
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+    background: #4FB6BE;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: #014471;
+    }
+  }
+}
+
+// ============================================
+// ESTILOS RESPONSIVOS
+// ============================================
+
+// Tablet (768px)
 @media (max-width: 768px) {
   .pokemon-page {
     padding: 1rem;
     padding-top: 4rem; // Más separación con el header en móviles
     margin-top: 10px;
+    width: 100%;
+    max-width: 100vw;
   }
 
   .generations-bar {
-    margin: 1rem 0.5rem 1rem 0.5rem; // Reducir márgenes laterales
-    margin-top: 3rem; // Ajustar para móviles con más separación
+    margin: 3rem 0 1rem 0; // Solo márgenes verticales
     padding: 1rem 0.5rem; // Reducir padding interno
+    width: 100%;
+    max-width: 100vw;
   }
 
   .generations-container {
     padding: 0 1rem; // Reducir padding lateral en móviles
+    width: 100%;
   }
 
   .generations-container h2 {
@@ -430,6 +628,39 @@
     font-size: 0.9rem;
   }
 
+  // Search Bar responsive
+  .search-bar-container {
+    margin: 0 auto 1.5rem;
+    padding: 1rem 0.5rem;
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  .search-bar {
+    .search-input {
+      font-size: 0.9rem;
+      padding: 0.6rem 0.8rem;
+    }
+
+    .clear-button,
+    .search-button {
+      width: 40px;
+      height: 40px;
+      font-size: 0.9rem;
+    }
+  }
+
+  .suggestions-dropdown {
+    right: 50px;
+  }
+
+  .search-result {
+    .pokemon-card.featured {
+      transform: scale(1.02);
+    }
+  }
+
   .pokemon-grid {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 1rem;
@@ -445,15 +676,18 @@
   }
 }
 
-// Media query para pantallas muy pequeñas (Samsung A16 y similares)
+// Mobile pequeño (430px)
 @media (max-width: 430px) {
   .generations-bar {
-    margin: 1rem 0.25rem; // Márgenes mínimos
+    margin: 3rem 0 1rem 0; // Solo márgenes verticales
     padding: 0.75rem 0.25rem; // Padding mínimo
+    width: 100%;
+    max-width: 100vw;
   }
 
   .generations-container {
     padding: 0 0.5rem; // Padding muy reducido
+    width: 100%;
   }
 
   .generations-container h2 {
@@ -465,6 +699,74 @@
   .dropdown-toggle {
     padding: 0.6rem 0.75rem; // Botón más compacto
     font-size: 0.9rem;
+  }
+
+  // Search Bar mobile pequeño
+  .search-bar-container {
+    margin: 0 auto 1rem;
+    padding: 0.8rem 0.5rem;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  .search-bar {
+    gap: 0.3rem;
+
+    .search-input {
+      font-size: 0.85rem;
+      padding: 0.5rem 0.7rem;
+      border-radius: 20px;
+    }
+
+    .clear-button,
+    .search-button {
+      width: 35px;
+      height: 35px;
+      font-size: 0.8rem;
+    }
+  }
+
+  .suggestions-dropdown {
+    right: 45px;
+    margin-top: 0.3rem;
+    border-radius: 8px;
+
+    .suggestion-item {
+      padding: 0.6rem 0.8rem;
+      font-size: 0.9rem;
+
+      .suggestion-id {
+        font-size: 0.8rem;
+        min-width: 35px;
+      }
+    }
+  }
+
+  .search-result {
+    .back-button {
+      padding: 0.6rem 1.2rem;
+      font-size: 0.9rem;
+      border-radius: 20px;
+    }
+
+    .pokemon-card.featured {
+      transform: scale(1);
+      max-width: 100%;
+    }
+
+    .pokemon-number {
+      font-size: 1rem;
+    }
+  }
+
+  .error {
+    .retry-button {
+      padding: 0.6rem 1.2rem;
+      font-size: 0.9rem;
+      border-radius: 20px;
+    }
   }
 
   .pokemon-grid {

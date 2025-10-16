@@ -1,4 +1,50 @@
 <div class="pokemon-page">
+  <!-- Barra de búsqueda -->
+  <div class="search-bar-container">
+    <div class="search-bar">
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (input)="onSearchInput()"
+        (keydown)="onSearchKeydown($event)"
+        (blur)="closeSuggestions()"
+        placeholder="Buscar Pokémon por nombre..."
+        class="search-input"
+      />
+      @if (searchQuery) {
+        <button 
+          (click)="clearSearch()" 
+          class="clear-button"
+          type="button"
+        >
+          ✕
+        </button>
+      }
+      <button 
+        (click)="searchPokemon()" 
+        class="search-button"
+        type="button"
+      >
+        🔍
+      </button>
+
+      <!-- Sugerencias de búsqueda -->
+      @if (showSuggestions && searchSuggestions.length > 0) {
+        <div class="suggestions-dropdown">
+          @for (suggestion of searchSuggestions; track suggestion.id) {
+            <div 
+              class="suggestion-item"
+              (mousedown)="selectSuggestion(suggestion)"
+            >
+              <span class="suggestion-id">#{{ suggestion.id }}</span>
+              <span class="suggestion-name">{{ suggestion.name | titlecase }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
   <!-- Barra de generaciones -->
   <div class="generations-bar">
     <div class="generations-container">
@@ -61,74 +107,116 @@
     @if (error) {
       <div class="error">
         <p>{{ error }}</p>
+        <button (click)="clearSearch()" class="retry-button">Volver a la lista</button>
       </div>
     } @else if (!loading) {
-      <!-- Grid de Pokemon -->
-      <div class="pokemon-grid">
-        @for (pokemon of pokemonList; track pokemon.id) {
-          <div class="pokemon-card">
-            <div class="pokemon-sprite">
-              <img [src]="pokemon.sprites.front_default" [alt]="pokemon.name" />
-            </div>
-            <div class="pokemon-info">
-              <h3 class="pokemon-name">{{ pokemon.name | titlecase }}</h3>
-              <div class="pokemon-types">
-                @for (type of pokemon.types; track type.type.name) {
-                  <span class="type-badge" [class]="'type-' + type.type.name">
-                    {{ type.type.name }}
-                  </span>
-                }
+      <!-- Modo búsqueda: Mostrar solo el pokémon buscado -->
+      @if (isSearchMode && searchedPokemon) {
+        <div class="search-result">
+          <button (click)="clearSearch()" class="back-button">← Volver a la lista</button>
+          <div class="pokemon-grid">
+            <div class="pokemon-card featured">
+              <div class="pokemon-sprite">
+                <img [src]="searchedPokemon.sprites.front_default" [alt]="searchedPokemon.name" />
               </div>
-              <div class="pokemon-abilities">
-                <p><strong>Habilidades:</strong></p>
-                @for (ability of pokemon.abilities; track ability.ability.name) {
-                  <span class="ability">{{ ability.ability.name | titlecase }}</span>
-                }
-              </div>
-            </div>
-            <!-- Estadísticas en hover -->
-            <div class="pokemon-stats">
-              <h4>Estadísticas Base</h4>
-              @for (stat of pokemon.stats; track stat.stat.name) {
-                <div class="stat-item">
-                  <span class="stat-name">{{ getStatName(stat.stat.name) }}</span>
-                  <span class="stat-value">{{ stat.base_stat }}</span>
+              <div class="pokemon-info">
+                <h3 class="pokemon-name">{{ searchedPokemon.name | titlecase }}</h3>
+                <p class="pokemon-number">#{{ searchedPokemon.id }}</p>
+                <div class="pokemon-types">
+                  @for (type of searchedPokemon.types; track type.type.name) {
+                    <span class="type-badge" [class]="'type-' + type.type.name">
+                      {{ type.type.name }}
+                    </span>
+                  }
                 </div>
-              }
+                <div class="pokemon-abilities">
+                  <p><strong>Habilidades:</strong></p>
+                  @for (ability of searchedPokemon.abilities; track ability.ability.name) {
+                    <span class="ability">{{ ability.ability.name | titlecase }}</span>
+                  }
+                </div>
+              </div>
+              <!-- Estadísticas en hover -->
+              <div class="pokemon-stats">
+                <h4>Estadísticas Base</h4>
+                @for (stat of searchedPokemon.stats; track stat.stat.name) {
+                  <div class="stat-item">
+                    <span class="stat-name">{{ getStatName(stat.stat.name) }}</span>
+                    <span class="stat-value">{{ stat.base_stat }}</span>
+                  </div>
+                }
+              </div>
             </div>
           </div>
-        }
-      </div>
+        </div>
+      } @else {
+        <!-- Grid de Pokemon normal -->
+        <div class="pokemon-grid">
+          @for (pokemon of pokemonList; track pokemon.id) {
+            <div class="pokemon-card">
+              <div class="pokemon-sprite">
+                <img [src]="pokemon.sprites.front_default" [alt]="pokemon.name" />
+              </div>
+              <div class="pokemon-info">
+                <h3 class="pokemon-name">{{ pokemon.name | titlecase }}</h3>
+                <div class="pokemon-types">
+                  @for (type of pokemon.types; track type.type.name) {
+                    <span class="type-badge" [class]="'type-' + type.type.name">
+                      {{ type.type.name }}
+                    </span>
+                  }
+                </div>
+                <div class="pokemon-abilities">
+                  <p><strong>Habilidades:</strong></p>
+                  @for (ability of pokemon.abilities; track ability.ability.name) {
+                    <span class="ability">{{ ability.ability.name | titlecase }}</span>
+                  }
+                </div>
+              </div>
+              <!-- Estadísticas en hover -->
+              <div class="pokemon-stats">
+                <h4>Estadísticas Base</h4>
+                @for (stat of pokemon.stats; track stat.stat.name) {
+                  <div class="stat-item">
+                    <span class="stat-name">{{ getStatName(stat.stat.name) }}</span>
+                    <span class="stat-value">{{ stat.base_stat }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
 
-      <!-- Paginación -->
-      @if (totalPages > 1) {
-        <div class="pagination">
-          <button
-            class="page-btn"
-            [disabled]="currentPage === 1"
-            (click)="changePage(currentPage - 1)"
-          >
-            Anterior
-          </button>
-
-          @for (page of getPageArray(); track page) {
+        <!-- Paginación -->
+        @if (totalPages > 1) {
+          <div class="pagination">
             <button
               class="page-btn"
-              [class.active]="currentPage === page"
-              (click)="changePage(page)"
+              [disabled]="currentPage === 1"
+              (click)="changePage(currentPage - 1)"
             >
-              {{ page }}
+              Anterior
             </button>
-          }
 
-          <button
-            class="page-btn"
-            [disabled]="currentPage === totalPages"
-            (click)="changePage(currentPage + 1)"
-          >
-            Siguiente
-          </button>
-        </div>
+            @for (page of getPageArray(); track page) {
+              <button
+                class="page-btn"
+                [class.active]="currentPage === page"
+                (click)="changePage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+
+            <button
+              class="page-btn"
+              [disabled]="currentPage === totalPages"
+              (click)="changePage(currentPage + 1)"
+            >
+              Siguiente
+            </button>
+          </div>
+        }
       }
     }
   </div>
