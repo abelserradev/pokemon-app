@@ -1,0 +1,46 @@
+@if (isVisible) {
+  <div class="modal-overlay" (click)="close()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-content" [class]="'modal-' + type">
+        <!-- Icono -->
+        <div class="modal-icon">
+          <span class="icon">{{ getIconByType() }}</span>
+        </div>
+
+        <!-- Título -->
+        @if (title) {
+          <h2 class="modal-title">{{ title }}</h2>
+        }
+
+        <!-- Mensaje -->
+        <p class="modal-message">{{ message }}</p>
+
+        <!-- Botones -->
+        <div class="modal-actions">
+          @if (showCancelButton) {
+            <button 
+              class="modal-btn btn-cancel" 
+              (click)="onCancel()"
+              [disabled]="isProcessing"
+              type="button"
+            >
+              {{ cancelText }}
+            </button>
+          }
+          <button 
+            class="modal-btn btn-confirm" 
+            (click)="onConfirm()"
+            [disabled]="isProcessing"
+            type="button"
+          >
+            {{ confirmText }}
+          </button>
+        </div>
+
+        <!-- Botón cerrar -->
+        <button class="modal-close" (click)="close()" type="button">✕</button>
+      </div>
+    </div>
+  </div>
+}
+

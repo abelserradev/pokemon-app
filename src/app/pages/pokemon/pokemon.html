@@ -1,50 +1,4 @@
 <div class="pokemon-page">
-  <!-- Barra de búsqueda -->
-  <div class="search-bar-container">
-    <div class="search-bar">
-      <input
-        type="text"
-        [(ngModel)]="searchQuery"
-        (input)="onSearchInput()"
-        (keydown)="onSearchKeydown($event)"
-        (blur)="closeSuggestions()"
-        placeholder="Buscar Pokémon por nombre..."
-        class="search-input"
-      />
-      @if (searchQuery) {
-        <button 
-          (click)="clearSearch()" 
-          class="clear-button"
-          type="button"
-        >
-          ✕
-        </button>
-      }
-      <button 
-        (click)="searchPokemon()" 
-        class="search-button"
-        type="button"
-      >
-        🔍
-      </button>
-
-      <!-- Sugerencias de búsqueda -->
-      @if (showSuggestions && searchSuggestions.length > 0) {
-        <div class="suggestions-dropdown">
-          @for (suggestion of searchSuggestions; track suggestion.id) {
-            <div 
-              class="suggestion-item"
-              (mousedown)="selectSuggestion(suggestion)"
-            >
-              <span class="suggestion-id">#{{ suggestion.id }}</span>
-              <span class="suggestion-name">{{ suggestion.name | titlecase }}</span>
-            </div>
-          }
-        </div>
-      }
-    </div>
-  </div>
-
   <!-- Barra de generaciones -->
   <div class="generations-bar">
     <div class="generations-container">
@@ -89,6 +43,52 @@
     </div>
   </div>
 
+   <!-- Barra de búsqueda -->
+   <div class="search-bar-container">
+    <div class="search-bar">
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (input)="onSearchInput()"
+        (keydown)="onSearchKeydown($event)"
+        (blur)="closeSuggestions()"
+        placeholder="Buscar Pokémon por nombre..."
+        class="search-input"
+      />
+      @if (searchQuery) {
+        <button 
+          (click)="clearSearch()" 
+          class="clear-button"
+          type="button"
+        >
+          ✕
+        </button>
+      }
+      <button 
+        (click)="searchPokemon()" 
+        class="search-button"
+        type="button"
+      >
+        🔍
+      </button>
+
+      <!-- Sugerencias de búsqueda -->
+      @if (showSuggestions && searchSuggestions.length > 0) {
+        <div class="suggestions-dropdown">
+          @for (suggestion of searchSuggestions; track suggestion.id) {
+            <div 
+              class="suggestion-item"
+              (mousedown)="selectSuggestion(suggestion)"
+            >
+              <span class="suggestion-id">#{{ suggestion.id }}</span>
+              <span class="suggestion-name">{{ suggestion.name | titlecase }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+  
   <!-- Contenido principal -->
   <div class="pokemon-content">
     <!-- Loading personalizado -->

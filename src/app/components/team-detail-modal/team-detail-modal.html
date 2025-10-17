@@ -1,0 +1,259 @@
+@if (isVisible && team) {
+  <div class="modal-overlay" (click)="close()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <!-- Header -->
+        <div class="modal-header">
+          <h2>{{ team.team_name }}</h2>
+          <button class="btn-close" (click)="close()" type="button">✕</button>
+        </div>
+
+        @if (team.description) {
+          <p class="team-description">{{ team.description }}</p>
+        }
+
+        <!-- Navegación de Pokémon -->
+        <div class="pokemon-tabs">
+          @for (pokemon of team.team_members; track pokemon.id) {
+            <button
+              class="pokemon-tab"
+              [class.active]="selectedPokemon?.id === pokemon.id"
+              (click)="selectPokemon(pokemon)"
+              type="button"
+            >
+              <img [src]="pokemon.pokemon_sprite || '/favicon.ico'" [alt]="pokemon.pokemon_name" />
+              <span>{{ pokemon.nickname || (pokemon.pokemon_name | titlecase) }}</span>
+            </button>
+          }
+        </div>
+
+        <!-- Detalles del Pokémon Seleccionado -->
+        @if (selectedPokemon) {
+          <div class="pokemon-details">
+            <!-- Información básica -->
+            <div class="pokemon-info">
+              <div class="pokemon-sprite-large">
+                <img [src]="selectedPokemon.pokemon_sprite || '/favicon.ico'" [alt]="selectedPokemon.pokemon_name" />
+              </div>
+              <div class="pokemon-data">
+                <!-- Editable Nickname -->
+                <div class="editable-field">
+                  @if (!editingNickname) {
+                    <h3 (click)="startEditingNickname()">
+                      {{ selectedPokemon.nickname || (selectedPokemon.pokemon_name | titlecase) }}
+                      <span class="edit-icon">✏️</span>
+                    </h3>
+                  } @else {
+                    <div class="edit-input-container">
+                      <input
+                        type="text"
+                        [(ngModel)]="tempNickname"
+                        (blur)="saveNickname()"
+                        (keyup.enter)="saveNickname()"
+                        (keyup.escape)="cancelEditingNickname()"
+                        placeholder="Nombre personalizado"
+                        maxlength="20"
+                        class="nickname-edit-input"
+                        #nicknameInput
+                      />
+                      <div class="edit-buttons">
+                        <button (click)="saveNickname()" class="btn-save" type="button">✓</button>
+                        <button (click)="cancelEditingNickname()" class="btn-cancel" type="button">✕</button>
+                      </div>
+                    </div>
+                  }
+                </div>
+                
+                <!-- Editable Level -->
+                <div class="editable-field">
+                  @if (!editingLevel) {
+                    <p class="pokemon-level" (click)="startEditingLevel()">
+                      Nivel {{ selectedPokemon.level }}
+                      <span class="edit-icon">✏️</span>
+                    </p>
+                  } @else {
+                    <div class="edit-input-container">
+                      <input
+                        type="number"
+                        [(ngModel)]="tempLevel"
+                        (blur)="saveLevel()"
+                        (keyup.enter)="saveLevel()"
+                        (keyup.escape)="cancelEditingLevel()"
+                        min="1"
+                        max="100"
+                        class="level-edit-input"
+                        #levelInput
+                      />
+                      <div class="edit-buttons">
+                        <button (click)="saveLevel()" class="btn-save" type="button">✓</button>
+                        <button (click)="cancelEditingLevel()" class="btn-cancel" type="button">✕</button>
+                      </div>
+                    </div>
+                  }
+                </div>
+                
+                <div class="pokemon-types">
+                  @for (type of selectedPokemon.pokemon_types || []; track type) {
+                    <span class="type-badge" [class]="'type-' + type">
+                      {{ type }}
+                    </span>
+                  }
+                </div>
+                @if (selectedPokemon.selected_ability) {
+                  <p class="pokemon-ability">
+                    <strong>Habilidad:</strong> {{ selectedPokemon.selected_ability | titlecase }}
+                  </p>
+                }
+              </div>
+            </div>
+
+            <!-- EVs Entrenados -->
+            <div class="evs-section">
+              <h4>EVs Entrenados</h4>
+              @if (hasTrainedEVs(selectedPokemon)) {
+                <div class="evs-grid">
+                  @if (selectedPokemon.evs) {
+                    <div class="ev-item">
+                      <span class="ev-label">HP:</span>
+                      <div class="ev-bar">
+                        <div class="ev-fill" [style.width.%]="(selectedPokemon.evs['hp'] || 0) / 252 * 100"></div>
+                      </div>
+                      <span class="ev-value">{{ selectedPokemon.evs['hp'] || 0 }}</span>
+                    </div>
+                    <div class="ev-item">
+                      <span class="ev-label">Ataque:</span>
+                      <div class="ev-bar">
+                        <div class="ev-fill" [style.width.%]="(selectedPokemon.evs['attack'] || 0) / 252 * 100"></div>
+                      </div>
+                      <span class="ev-value">{{ selectedPokemon.evs['attack'] || 0 }}</span>
+                    </div>
+                    <div class="ev-item">
+                      <span class="ev-label">Defensa:</span>
+                      <div class="ev-bar">
+                        <div class="ev-fill" [style.width.%]="(selectedPokemon.evs['defense'] || 0) / 252 * 100"></div>
+                      </div>
+                      <span class="ev-value">{{ selectedPokemon.evs['defense'] || 0 }}</span>
+                    </div>
+                    <div class="ev-item">
+                      <span class="ev-label">At. Esp:</span>
+                      <div class="ev-bar">
+                        <div class="ev-fill" [style.width.%]="(selectedPokemon.evs['special-attack'] || 0) / 252 * 100"></div>
+                      </div>
+                      <span class="ev-value">{{ selectedPokemon.evs['special-attack'] || 0 }}</span>
+                    </div>
+                    <div class="ev-item">
+                      <span class="ev-label">Def. Esp:</span>
+                      <div class="ev-bar">
+                        <div class="ev-fill" [style.width.%]="(selectedPokemon.evs['special-defense'] || 0) / 252 * 100"></div>
+                      </div>
+                      <span class="ev-value">{{ selectedPokemon.evs['special-defense'] || 0 }}</span>
+                    </div>
+                    <div class="ev-item">
+                      <span class="ev-label">Velocidad:</span>
+                      <div class="ev-bar">
+                        <div class="ev-fill" [style.width.%]="(selectedPokemon.evs['speed'] || 0) / 252 * 100"></div>
+                      </div>
+                      <span class="ev-value">{{ selectedPokemon.evs['speed'] || 0 }}</span>
+                    </div>
+                  }
+                </div>
+                <p class="ev-total">Total EVs: {{ getTotalEVs(selectedPokemon) }}/510</p>
+                <!-- Botón para modificar EVs -->
+                <div class="evs-actions">
+                  <button class="btn-modify-evs" (click)="onTrainTeam()" type="button">
+                    <span class="btn-icon">✏️</span>
+                    Modificar EVs
+                  </button>
+                </div>
+              } @else {
+                <div class="no-evs">
+                  <p>Este Pokémon no tiene EVs entrenados</p>
+                  <button class="btn-train" (click)="onTrainTeam()" type="button">
+                    <span class="btn-icon">💪</span>
+                    Entrenar EVs
+                  </button>
+                </div>
+              }
+            </div>
+
+            <!-- Movimientos -->
+            <div class="moves-section">
+              <h4>Movimientos Disponibles</h4>
+              @if (loadingMoves) {
+                <p class="loading-moves">Cargando movimientos...</p>
+              } @else {
+                <div class="moves-grid">
+                  <!-- Movimientos por Nivel -->
+                  <div class="move-category">
+                    <h5>{{ getLearnMethodLabel('level-up') }} ({{ getMovesByMethod('level-up').length }})</h5>
+                    <div class="move-list">
+                      @for (move of getMovesByMethod('level-up'); track $index) {
+                        <div class="move-item">
+                          <span class="move-name">{{ move.name | titlecase }}</span>
+                          @if (move.level !== undefined) {
+                            <span class="move-level">Nv. {{ move.level }}</span>
+                          }
+                        </div>
+                      } @empty {
+                        <p class="no-moves">Sin movimientos</p>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Movimientos Huevo -->
+                  <div class="move-category">
+                    <h5>{{ getLearnMethodLabel('egg') }} ({{ getMovesByMethod('egg').length }})</h5>
+                    <div class="move-list">
+                      @for (move of getMovesByMethod('egg'); track $index) {
+                        <div class="move-item">
+                          <span class="move-name">{{ move.name | titlecase }}</span>
+                        </div>
+                      } @empty {
+                        <p class="no-moves">Sin movimientos</p>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Movimientos MT/MO -->
+                  <div class="move-category">
+                    <h5>{{ getLearnMethodLabel('machine') }} ({{ getMovesByMethod('machine').length }})</h5>
+                    <div class="move-list">
+                      @for (move of getMovesByMethod('machine'); track $index) {
+                        <div class="move-item">
+                          <span class="move-name">{{ move.name | titlecase }}</span>
+                        </div>
+                      } @empty {
+                        <p class="no-moves">Sin movimientos</p>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Movimientos Tutor -->
+                  <div class="move-category">
+                    <h5>{{ getLearnMethodLabel('tutor') }} ({{ getMovesByMethod('tutor').length }})</h5>
+                    <div class="move-list">
+                      @for (move of getMovesByMethod('tutor'); track $index) {
+                        <div class="move-item">
+                          <span class="move-name">{{ move.name | titlecase }}</span>
+                        </div>
+                      } @empty {
+                        <p class="no-moves">Sin movimientos</p>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Botón de cerrar -->
+        <div class="modal-footer">
+          <button class="btn-close-modal" (click)="close()" type="button">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

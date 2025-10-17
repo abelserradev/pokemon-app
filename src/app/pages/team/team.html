@@ -19,23 +19,72 @@
       <p>Construye tu equipo perfecto (máximo 6 Pokemon)</p>
     </div>
 
+
+    <!-- Botones de gestión de equipos -->
+    <div class="team-management-buttons">
+      <button 
+        class="btn-save-team" 
+        (click)="saveCurrentTeam()"
+        [disabled]="!canSaveTeam()"
+      >
+        Guardar Equipo
+      </button>
+      <button 
+        class="btn-view-teams" 
+        (click)="goToTeams()"
+      >
+        Equipos
+      </button>
+    </div>
+
     <!-- Barra de búsqueda -->
     <div class="search-section">
       <div class="search-container">
         <input
           type="text"
           [(ngModel)]="searchTerm"
+          (input)="onSearchInput()"
+          (keydown)="onSearchKeydown($event)"
+          (blur)="closeSuggestions()"
           placeholder="Busca un Pokemon por nombre..."
           class="search-input"
           (keyup.enter)="searchPokemon()"
         />
-        <button class="search-btn" (click)="searchPokemon()" [disabled]="loading">
-          @if (loading) {
-            <div class="spinner-small"></div>
-          } @else {
-            🔍
-          }
+        @if (searchTerm) {
+          <button 
+            (click)="clearSearch()" 
+            class="clear-button"
+            type="button"
+          >
+            ✕
+          </button>
+        }
+        <button 
+          class="search-btn"
+          (click)="searchPokemon()"
+          [disabled]="loading"
+          type="button"
+        >
+        @if (loading) {
+          <div class="spinner-small"></div>
+
+        } @else {
+          🔍
+        }
         </button>
+        @if (showSuggestions && searchSuggestions.length > 0) {
+          <div class="suggestions-dropdown">
+            @for (suggestion of searchSuggestions; track suggestion.id) {
+              <div 
+                class="suggestion-item"
+                (mousedown)="selectSuggestion(suggestion)"
+              >
+                <span class="suggestion-id">#{{ suggestion.id }}</span>
+                <span class="suggestion-name">{{ suggestion.name | titlecase }}</span>
+              </div>
+            }
+          </div>
+        }
       </div>
     </div>
 
@@ -54,6 +103,21 @@
                   {{ type.type.name }}
                 </span>
               }
+            </div>
+            
+            <!-- Selector de nivel -->
+            <div class="level-selector">
+              <label for="pokemonLevel">Nivel:</label>
+              <input
+                type="number"
+                id="pokemonLevel"
+                [(ngModel)]="pokemonLevel"
+                min="1"
+                max="100"
+                step="1"
+                class="level-input"
+                (blur)="validateLevel()"
+              />
             </div>
           </div>
         </div>
@@ -93,118 +157,123 @@
       } @else {
         <div class="team-grid">
           @for (teamPoke of teamPokemon; track teamPoke.id || teamPoke.pokemon_id) {
-            <div class="team-pokemon-item">
-              <!-- Cyber Card para sprite y tipos -->
-              <div class="cyber-card-container noselect">
-                <div class="cyber-canvas">
-                  <!-- Trackers completos para cubrir toda la card -->
-                  <div class="tracker tr-1"></div>
-                  <div class="tracker tr-2"></div>
-                  <div class="tracker tr-3"></div>
-                  <div class="tracker tr-4"></div>
-                  <div class="tracker tr-5"></div>
-                  <div class="tracker tr-6"></div>
-                  <div class="tracker tr-7"></div>
-                  <div class="tracker tr-8"></div>
-                  <div class="tracker tr-9"></div>
-                  <div class="tracker tr-10"></div>
-                  <div class="tracker tr-11"></div>
-                  <div class="tracker tr-12"></div>
-                  <div class="tracker tr-13"></div>
-                  <div class="tracker tr-14"></div>
-                  <div class="tracker tr-15"></div>
-                  <div class="tracker tr-16"></div>
-                  <div class="tracker tr-17"></div>
-                  <div class="tracker tr-18"></div>
-                  <div class="tracker tr-19"></div>
-                  <div class="tracker tr-20"></div>
-                  <div class="tracker tr-21"></div>
-                  <div class="tracker tr-22"></div>
-                  <div class="tracker tr-23"></div>
-                  <div class="tracker tr-24"></div>
-                  <div class="tracker tr-25"></div>
+            @if (teamPoke.pokemon) {
+              <div class="team-pokemon-item">
+                <!-- Cyber Card para sprite y tipos -->
+                <div class="cyber-card-container noselect">
+                  <div class="cyber-canvas">
+                    <!-- Trackers completos para cubrir toda la card -->
+                    <div class="tracker tr-1"></div>
+                    <div class="tracker tr-2"></div>
+                    <div class="tracker tr-3"></div>
+                    <div class="tracker tr-4"></div>
+                    <div class="tracker tr-5"></div>
+                    <div class="tracker tr-6"></div>
+                    <div class="tracker tr-7"></div>
+                    <div class="tracker tr-8"></div>
+                    <div class="tracker tr-9"></div>
+                    <div class="tracker tr-10"></div>
+                    <div class="tracker tr-11"></div>
+                    <div class="tracker tr-12"></div>
+                    <div class="tracker tr-13"></div>
+                    <div class="tracker tr-14"></div>
+                    <div class="tracker tr-15"></div>
+                    <div class="tracker tr-16"></div>
+                    <div class="tracker tr-17"></div>
+                    <div class="tracker tr-18"></div>
+                    <div class="tracker tr-19"></div>
+                    <div class="tracker tr-20"></div>
+                    <div class="tracker tr-21"></div>
+                    <div class="tracker tr-22"></div>
+                    <div class="tracker tr-23"></div>
+                    <div class="tracker tr-24"></div>
+                    <div class="tracker tr-25"></div>
 
-                  <div class="cyber-card">
-                    <div class="card-content">
-                      <div class="card-glare"></div>
-                      <div class="cyber-lines">
-                        <span></span><span></span><span></span><span></span>
-                      </div>
-
-                      <!-- Pokemon Sprite -->
-                      <div class="pokemon-sprite">
-                        <img [src]="teamPoke.pokemon.sprites.front_default" [alt]="teamPoke.pokemon.name" />
-                      </div>
-
-                      <!-- Pokemon Info -->
-                      <div class="pokemon-info">
-                        <h3 class="pokemon-name">{{ teamPoke.pokemon.name | titlecase }}</h3>
-                        <div class="pokemon-types">
-                          @for (type of teamPoke.pokemon.types; track type.type.name) {
-                            <span class="type-badge" [class]="'type-' + type.type.name">
-                              {{ type.type.name }}
-                            </span>
-                          }
+                    <div class="cyber-card">
+                      <div class="card-content">
+                        <div class="card-glare"></div>
+                        <div class="cyber-lines">
+                          <span></span><span></span><span></span><span></span>
                         </div>
-                      </div>
 
-                      <div class="glowing-elements">
-                        <div class="glow-1"></div>
-                        <div class="glow-2"></div>
-                        <div class="glow-3"></div>
-                      </div>
+                        <!-- Pokemon Sprite -->
+                        <div class="pokemon-sprite">
+                          <img 
+                            [src]="teamPoke.pokemon?.sprites?.front_default || '/favicon.ico'" 
+                            [alt]="teamPoke.pokemon?.name || 'Pokémon'" 
+                          />
+                        </div>
 
-                      <div class="card-particles">
-                        <span></span><span></span><span></span>
-                        <span></span><span></span><span></span>
-                      </div>
+                        <!-- Pokemon Info -->
+                        <div class="pokemon-info">
+                          <h3 class="pokemon-name">{{ (teamPoke.pokemon?.name || 'Pokémon') | titlecase }}</h3>
+                          <div class="pokemon-types">
+                            @for (type of teamPoke.pokemon?.types || []; track type.type.name) {
+                              <span class="type-badge" [class]="'type-' + type.type.name">
+                                {{ type.type.name }}
+                              </span>
+                            }
+                          </div>
+                        </div>
 
-                      <div class="corner-elements">
-                        <span></span><span></span><span></span><span></span>
-                      </div>
+                        <div class="glowing-elements">
+                          <div class="glow-1"></div>
+                          <div class="glow-2"></div>
+                          <div class="glow-3"></div>
+                        </div>
 
-                      <div class="scan-line"></div>
+                        <div class="card-particles">
+                          <span></span><span></span><span></span>
+                          <span></span><span></span><span></span>
+                        </div>
+
+                        <div class="corner-elements">
+                          <span></span><span></span><span></span><span></span>
+                        </div>
+
+                        <div class="scan-line"></div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <!-- Controles fuera de la card -->
-              <div class="pokemon-controls">
-                <!-- Ability Selector -->
-                <div class="ability-selector">
-                  <label for="ability-{{ teamPoke.pokemon.id }}">Habilidad:</label>
-                  <select
-                    id="ability-{{ teamPoke.pokemon.id }}"
-                    [(ngModel)]="teamPoke.selectedAbility"
-                    (change)="onAbilityChange(teamPoke.id, teamPoke.selectedAbility)"
-                    class="ability-select"
-                  >
-                    @for (ability of teamPoke.pokemon.abilities; track ability.ability.name) {
-                      <option [value]="ability.ability.name">
-                        {{ ability.ability.name | titlecase }}
-                        @if (ability.is_hidden) {
-                          (Oculta)
-                        }
-                      </option>
-                    }
-                  </select>
-                </div>
+                <!-- Controles fuera de la card -->
+                <div class="pokemon-controls">
+                  <!-- Ability Selector -->
+                  <div class="ability-selector">
+                    <label for="ability-{{ teamPoke.pokemon.id }}">Habilidad:</label>
+                    <select
+                      id="ability-{{ teamPoke.pokemon.id }}"
+                      [(ngModel)]="teamPoke.selectedAbility"
+                      (change)="onAbilityChange(teamPoke.id, teamPoke.selectedAbility)"
+                      class="ability-select"
+                    >
+                      @for (ability of teamPoke.pokemon.abilities; track ability.ability.name) {
+                        <option [value]="ability.ability.name">
+                          {{ ability.ability.name | titlecase }}
+                          @if (ability.is_hidden) {
+                            (Oculta)
+                          }
+                        </option>
+                      }
+                    </select>
+                  </div>
 
-                <!-- Remove Button con estilo cyber -->
-                <div class="cyber-button-container">
-                  <button
-                    class="cyber-button"
-                    (click)="removeFromTeam(teamPoke.id)"
-                    type="button"
-                  >
-                    <a>
-                      <span>Eliminar</span>
-                    </a>
-                  </button>
+                  <!-- Remove Button con estilo cyber -->
+                  <div class="cyber-button-container">
+                    <button
+                      class="cyber-button"
+                      (click)="removeFromTeam(teamPoke.id)"
+                      type="button"
+                    >
+                      <a>
+                        <span>Eliminar</span>
+                      </a>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            }
           }
         </div>
       }

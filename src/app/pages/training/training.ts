@@ -1,13 +1,17 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, AsyncPipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router, NavigationEnd } from '@angular/router';
 import { Observable, Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { TrainingService } from '../../services/training.service';
 import { LoadingService, LoadingState } from '../../services/loading.service';
+import { ModalService } from '../../services/modal.service';
 import { LoadingComponent } from '../../components/loading/loading';
 import { TrainingSession, TrainingValidation, TrainingForm } from '../../shared/interfaces';
 import { TeamService } from '../../services/team.service';
+import { PokemonTeamsService } from '../../services/pokemon-team-service';
+
 
 @Component({
   selector: 'app-training',
@@ -25,31 +29,47 @@ export class Training implements OnInit, OnDestroy {
   validation: TrainingValidation | null = null;
   loadingState$!: Observable<LoadingState>;
   private subscriptions = new Subscription();
+  isTrainingSavedTeam = false;
+  savedTeamName = '';
 
   constructor(
     private trainingService: TrainingService,
     private loadingService: LoadingService,
+    private modalService: ModalService,
     private teamService: TeamService,
+    private teamsService: PokemonTeamsService,
+    private router: Router,
     private fb: FormBuilder
   ) {
     this.trainingForm = this.fb.group({
-      hp: [0, [Validators.min(0), Validators.max(252)]],
-      attack: [0, [Validators.min(0), Validators.max(252)]],
-      defense: [0, [Validators.min(0), Validators.max(252)]],
-      specialAttack: [0, [Validators.min(0), Validators.max(252)]],
-      specialDefense: [0, [Validators.min(0), Validators.max(252)]],
-      speed: [0, [Validators.min(0), Validators.max(252)]]
+      hp: [null, [Validators.min(0), Validators.max(252)]],
+      attack: [null, [Validators.min(0), Validators.max(252)]], 
+      defense: [null, [Validators.min(0), Validators.max(252)]], 
+      specialAttack: [null, [Validators.min(0), Validators.max(252)]], 
+      specialDefense: [null, [Validators.min(0), Validators.max(252)]], 
+      speed: [null, [Validators.min(0), Validators.max(252)]] 
     });
   }
 
   ngOnInit(): void {
     this.loadingState$ = this.loadingService.loading$;
 
-    // Limpiar cache antes de cargar datos frescos
-    this.teamService.clearCache();
-    this.trainingService.clearCache();
+    // Cargar datos inicialmente
+    this.loadTrainingData();
 
-    this.loadTeamAndSessions();
+    // Suscribirse a eventos de navegación para recargar cuando se navega a esta ruta
+    this.subscriptions.add(
+      this.router.events.pipe(
+        filter(event => event instanceof NavigationEnd)
+      ).subscribe((event: any) => {
+        // Solo recargar si estamos en la ruta de entrenamiento
+        if (event.url === '/entrenamiento') {
+          console.log('Recargando datos de entrenamiento por navegación');
+          this.loadTrainingData();
+        }
+      })
+    );
+
     this.setupFormValidation();
 
     // Suscribirse a cambios en el equipo
@@ -69,22 +89,65 @@ export class Training implements OnInit, OnDestroy {
     );
   }
 
+  // Método centralizado para cargar datos de entrenamiento
+  private loadTrainingData(): void {
+    // Verificar si hay un equipo guardado siendo entrenado
+    const savedTeamId = this.teamsService.getCurrentTrainingTeamId();
+    if (savedTeamId) {
+      this.isTrainingSavedTeam = true;
+      // Cargar equipos si aún no están cargados
+      if (this.teamsService.currentTeams.length === 0) {
+        this.teamsService.loadTeams().subscribe({
+          next: () => {
+            const team = this.teamsService.currentTeams.find(t => t.id === savedTeamId);
+            this.savedTeamName = team?.team_name || 'Equipo Guardado';
+            this.loadTeamAndSessions();
+          }
+        });
+      } else {
+        const team = this.teamsService.currentTeams.find(t => t.id === savedTeamId);
+        this.savedTeamName = team?.team_name || 'Equipo Guardado';
+        this.loadTeamAndSessions();
+      }
+    } else {
+      this.isTrainingSavedTeam = false;
+      this.savedTeamName = '';
+      this.loadTeamAndSessions();
+    }
+  }
+
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
+    // Limpiar el ID del equipo guardado al salir del componente
+    // Solo si todos los Pokémon están completamente entrenados
+    const allCompleted = this.trainingSessions.every(s => s.isCompleted);
+    if (allCompleted) {
+      this.teamsService.clearCurrentTrainingTeamId();
+    }
   }
 
   private loadTeamAndSessions(): void {
+    console.log('🔄 Cargando equipo y sesiones...');
+    
+    // Limpiar cache antes de cargar datos frescos
+    this.teamService.clearCache();
+    this.trainingService.clearCache();
+    
     this.teamService.loadTeam().subscribe({
       next: (team) => {
+        console.log('✅ Equipo cargado:', team);
         this.teamPokemon = team;
         if (team.length > 0) {
+          console.log(`📊 Inicializando sesiones para ${team.length} Pokémon`);
           this.initializeTrainingSessions();
         } else {
+          console.log('⚠️ No hay Pokémon en el equipo');
           this.trainingSessions = [];
           this.currentSession = null;
         }
       },
-      error: () => {
+      error: (error) => {
+        console.error('❌ Error al cargar equipo:', error);
         this.teamPokemon = [];
         this.trainingSessions = [];
         this.currentSession = null;
@@ -93,27 +156,36 @@ export class Training implements OnInit, OnDestroy {
   }
 
   private initializeTrainingSessions(): void {
+    console.log('🔄 Cargando sesiones de entrenamiento...');
+    
     this.subscriptions.add(
       this.trainingService.loadTrainingSessions().subscribe({
         next: () => {
           const transformedSessions = this.trainingService.currentSessions;
+          console.log('📋 Todas las sesiones cargadas:', transformedSessions);
 
           const currentTeamIds = this.teamPokemon.map(p => p.pokemon_id);
+          console.log('🎯 IDs del equipo actual:', currentTeamIds);
+          
           const validSessions = transformedSessions.filter(session =>
             currentTeamIds.includes(session.pokemonId)
           );
+          console.log('✅ Sesiones válidas encontradas:', validSessions);
 
           this.trainingSessions = validSessions;
 
           if (validSessions.length > 0) {
             this.currentSession = validSessions[0];
             this.currentPokemonIndex = 0;
+            console.log('🎮 Sesión actual establecida:', this.currentSession);
           } else {
             this.currentSession = null;
             this.currentPokemonIndex = 0;
+            console.log('⚠️ No hay sesiones válidas');
           }
         },
-        error: () => {
+        error: (error) => {
+          console.error('❌ Error al cargar sesiones:', error);
           this.trainingSessions = [];
           this.currentSession = null;
           this.currentPokemonIndex = 0;
@@ -151,12 +223,11 @@ export class Training implements OnInit, OnDestroy {
   private updateFormWithCurrentEVs(): void {
     if (this.currentSession) {
       this.trainingForm.patchValue({
-        hp: 0,
-        attack: 0,
-        defense: 0,
-        specialAttack: 0,
-        specialDefense: 0,
-        speed: 0
+        hp: null, 
+        defense: null, 
+        specialAttack: null, 
+        specialDefense: null, 
+        speed: null 
       }, { emitEvent: false });
 
       setTimeout(() => {
@@ -183,12 +254,15 @@ export class Training implements OnInit, OnDestroy {
 
   applyTraining(): void {
     if (!this.currentSession) {
-      alert('Error: No hay una sesión de Pokemon activa');
+      this.modalService.showError('No hay una sesión de Pokemon activa', 'Error');
       return;
     }
 
     if (!this.validation || !this.validation.isValid) {
-      alert('Error de validación: ' + (this.validation?.errors?.join(', ') || 'Formulario inválido'));
+      this.modalService.showError(
+        this.validation?.errors?.join(', ') || 'Formulario inválido',
+        'Error de validación'
+      );
       return;
     }
 
@@ -216,10 +290,47 @@ export class Training implements OnInit, OnDestroy {
         this.trainingForm.reset();
         this.validation = null;
 
-        alert('¡Entrenamiento aplicado exitosamente!');
+        // Actualizar el equipo guardado con los nuevos EVs si existe
+        this.updateSavedTeamEVs();
+
+        this.modalService.showSuccess('Los EVs fueron aplicados con éxito', '¡Entrenamiento Completado!');
       },
       error: () => {
-        alert('Error al aplicar el entrenamiento');
+        this.modalService.showError('Error al aplicar el entrenamiento', 'Error');
+      }
+    });
+  }
+
+  // Actualizar EVs del equipo guardado después de entrenar
+  private updateSavedTeamEVs(): void {
+    const teamId = this.teamsService.getCurrentTrainingTeamId();
+    
+    if (!teamId) {
+      // No hay equipo guardado siendo entrenado, es el equipo normal
+      return;
+    }
+
+    // Preparar datos actualizados de los Pokémon con sus EVs
+    const updatedMembers = this.trainingSessions.map(session => ({
+      pokemon_id: session.pokemonId,
+      evs: {
+        hp: session.currentEVs.hp,
+        attack: session.currentEVs.attack,
+        defense: session.currentEVs.defense,
+        'special-attack': session.currentEVs.specialAttack,
+        'special-defense': session.currentEVs.specialDefense,
+        speed: session.currentEVs.speed
+      }
+    }));
+
+    // Actualizar el equipo guardado en el backend
+    this.teamsService.updateTeamEVs(teamId, updatedMembers).subscribe({
+      next: () => {
+        console.log('EVs del equipo guardado actualizados exitosamente');
+      },
+      error: (err) => {
+        console.error('Error al actualizar EVs del equipo guardado:', err);
+        // No mostrar error al usuario, es una operación secundaria
       }
     });
   }
@@ -229,6 +340,12 @@ export class Training implements OnInit, OnDestroy {
       this.trainingService.resetTraining(this.currentSession.id).subscribe({
         next: () => {
           this.initializeTrainingSessions();
+          
+          // Si se resetea un equipo guardado, actualizar también el equipo guardado
+          const teamId = this.teamsService.getCurrentTrainingTeamId();
+          if (teamId) {
+            this.updateSavedTeamEVs();
+          }
         },
         error: () => {}
       });
@@ -252,4 +369,5 @@ export class Training implements OnInit, OnDestroy {
     if (progress >= 50) return 'progress-medium';
     return 'progress-low';
   }
+
 }

@@ -81,10 +81,49 @@ export class CustomValidators {
             const htmlPattern =  /<[^>]*>/g;
 
             if (scriptPattern.test(value) || htmlPattern.test(value)) {
-                return { constainsHtml: true };
+                return { containsHtml: true };
             }
 
             return null;
+        };
+    }
+
+    static safeNickname(): ValidatorFn {
+        return (control: AbstractControl): ValidationErrors | null => {
+            if (!control.value) {
+                return null;
+            }
+
+            const value = control.value.toString().trim();
+            const errors: ValidationErrors = {};
+
+            // Verificar longitud
+            if (value.length > 20) {
+                errors['maxLength'] = { requiredLength: 20, actualLength: value.length };
+            }
+
+            // Detectar tags HTML
+            const htmlPattern = /<[^>]*>/g;
+            if (htmlPattern.test(value)) {
+                errors['containsHtml'] = true;
+            }
+
+            // Detectar scripts maliciosos
+            const scriptPattern = /<script[\s\S]*?>[\s\S]*?<\/script>/gi;
+            const onEventPattern = /on\w+\s*=/gi; // onclick=, onerror=, etc.
+            const javascriptPattern = /javascript:/gi;
+            
+            if (scriptPattern.test(value) || onEventPattern.test(value) || javascriptPattern.test(value)) {
+                errors['maliciousScript'] = true;
+            }
+
+            // Solo permitir caracteres alfanuméricos, espacios y algunos especiales seguros
+            const safePattern = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_'.!?]+$/;
+            if (!safePattern.test(value)) {
+                errors['invalidCharacters'] = true;
+            }
+
+            return Object.keys(errors).length > 0 ? errors : null;
         };
     }
 }

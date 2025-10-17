@@ -36,6 +36,27 @@
   }
 }
 
+.saved-team-indicator {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(245, 208, 95, 0.2);
+  border: 2px solid #F5D05F;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  color: #F5D05F;
+
+  .indicator-icon {
+    font-size: 1.2rem;
+  }
+
+  strong {
+    color: #EBBA68;
+  }
+}
+
 // Equipo vacío
 .empty-team {
   text-align: center;
@@ -442,6 +463,45 @@
 .type-steel { background: #B8B8D0; }
 .type-fairy { background: #EE99AC; }
 
+
+.btn-save-team,
+.btn-view-teams {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 150px;
+}
+
+.btn-save-team {
+  background: #4FB6BE;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: #014471;
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.btn-view-teams {
+  background: #EBBA68;
+  color: #473822;
+
+  &:hover {
+    background: #F5D05F;
+    transform: translateY(-2px);
+  }
+}
+
 // Responsive
 @media (max-width: 768px) {
   .training-page {
@@ -562,6 +622,21 @@
       padding: 0.75rem 1.5rem;
     }
   }
+
+  // Responsive para los botones
+  .team-management-buttons {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .btn-save-team,
+  .btn-view-teams {
+    width: 100%;
+    max-width: 300px;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -615,6 +690,17 @@
   .action-buttons button {
     padding: 0.875rem 1.25rem;
     font-size: 0.9rem;
+  }
+
+  // Responsive para los botones
+  .team-management-buttons {
+    padding: 0 0.5rem;
+  }
+
+  .btn-save-team,
+  .btn-view-teams {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.95rem;
   }
 }
 

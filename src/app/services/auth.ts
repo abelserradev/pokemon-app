@@ -49,19 +49,13 @@ export class Auth {
   }
 
   login(user: any): Observable<LoginResponse> {
-    // Crear URLSearchParams para application/x-www-form-urlencoded
-    const body = new URLSearchParams();
-    body.set('username', user.email);
-    body.set('password', user.password);
-
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/x-www-form-urlencoded'
-    });
-
+    // Usar el nuevo endpoint /login/json que acepta JSON
     return this.http.post<LoginResponse>(
-      `${this.apiUrl}/login`,
-      body.toString(),
-      { headers }
+      `${this.apiUrl}/login/json`,
+      {
+        email: user.email,
+        password: user.password
+      }
     ).pipe(
       tap(response => {
         this.setToken(response.access_token);

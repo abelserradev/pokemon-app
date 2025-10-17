@@ -16,6 +16,12 @@
   <div class="training-header">
     <h1>Centro de Entrenamiento Pokemon</h1>
     <p>Entrena a tu equipo para maximizar sus estadísticas con EVs</p>
+    @if (isTrainingSavedTeam) {
+      <div class="saved-team-indicator">
+        <span class="indicator-icon">📁</span>
+        <span>Entrenando equipo guardado: <strong>{{ savedTeamName }}</strong></span>
+      </div>
+    }
   </div>
 
   @if (teamPokemon.length === 0) {

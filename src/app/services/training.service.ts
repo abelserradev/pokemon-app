@@ -314,4 +314,13 @@ export class TrainingService {
       });
     }
   }
+
+  // Limpiar todas las sesiones de training
+  clearAllSessions(): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/training/clear-all`).pipe(
+      tap(() => {
+        this.trainingSessionsSubject.next([]);
+      })
+    );
+  }
 }

@@ -6,6 +6,8 @@ import { Training } from './pages/training/training';
 import { Register } from './pages/register/register';
 import { Login } from './pages/login/login';
 import { authGuard } from './guards/auth.guard';
+import { PokemonTeams } from './pages/pokemon-teams/pokemon-teams';
+
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -25,4 +27,9 @@ export const routes: Routes = [
   },
   { path: 'register', component: Register },
   { path: 'login', component: Login },
+  {
+    path: 'equipos',
+    component: PokemonTeams,
+    canActivate: [authGuard]
+  },
 ];

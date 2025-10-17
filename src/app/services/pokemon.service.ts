@@ -33,6 +33,17 @@ export interface Pokemon {
       name: string;
     };
   }>;
+  moves?: Array<{
+    move: {
+      name: string;
+    };
+    version_group_details: Array<{
+      level_learned_at: number;
+      move_learn_method: {
+        name: string;
+      };
+    }>;
+  }>;
 }
 
 export interface PokemonListResponse {

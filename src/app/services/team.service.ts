@@ -11,6 +11,8 @@ export interface TeamPokemon {
   pokemon_name: string;
   pokemon_sprite: string;
   selected_ability: string;
+  nickname?: string;
+  level?: number;
   added_at?: string;
   pokemon?: Pokemon;
 }
@@ -38,14 +40,14 @@ export class TeamService {
     );
   }
 
-  addToTeam(pokemon: Pokemon, selectedAbility: string): Observable<any> {
+  addToTeam(pokemon: Pokemon, selectedAbility: string, level: number = 50): Observable<any> {
     const teamPokemon = {
       pokemon_id: pokemon.id,
       pokemon_name: pokemon.name,
       pokemon_sprite: pokemon.sprites.front_default || pokemon.sprites?.other?.['official-artwork']?.front_default,
-      pokemon_types: pokemon.types?.map((t: any) => t.type.name), // Tipos del pokémon
+      pokemon_types: pokemon.types?.map((t: any) => t.type.name),
       selected_ability: selectedAbility,
-      level: 1,
+      level: level,  // Usar el nivel proporcionado
       base_stats: {
         hp: pokemon.stats[0].base_stat,
         attack: pokemon.stats[1].base_stat,
@@ -62,7 +64,8 @@ export class TeamService {
         const enrichedPokemon = {
           ...newPokemon,
           pokemon: pokemon,
-          selectedAbility: selectedAbility
+          selectedAbility: selectedAbility,
+          level: level
         };
         this.teamSubject.next([...currentTeam, enrichedPokemon]);
       })
@@ -75,6 +78,15 @@ export class TeamService {
         const currentTeam = this.teamSubject.value;
         const updatedTeam = currentTeam.filter(p => p.id !== teamPokemonId);
         this.teamSubject.next(updatedTeam);
+      })
+    );
+  }
+
+  // Limpiar todo el equipo actual
+  clearTeam(): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/team/clear-all`).pipe(
+      tap(() => {
+        this.teamSubject.next([]);
       })
     );
   }
