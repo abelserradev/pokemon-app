@@ -176,6 +176,119 @@
               }
             </div>
 
+            <!-- Movimientos del pokemon -->
+            <div class="pokemon-moves-section">
+              <h4>Movimientos del Pokemon</h4>
+
+              @if (!editingMoves) {
+                <div class="moves-display">
+                  <div class="moves-slots">
+                    @for (move of [0, 1, 2, 3]; track $index) {
+                      <div class="move-slot" [class.empty]="getMoveNameForSlot($index) === 'Vacío'">
+                        <span class="slot-number">{{ $index + 1}}</span>
+                        <span class="slot-move">{{ getMoveNameForSlot($index) | titlecase }}</span>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="moves-actions">
+                    <button class="btn-edit-moves" (click)="startEditingMoves()" type="button">
+                      <span class="btn-icon">✏️</span>
+                      {{ hasMoves() ? 'Editar Movimientos' : 'Agregar Movimientos' }}
+                    </button>
+                  </div>
+                </div>
+              }@else {
+                <div class="moves-edit">
+                  <p class="edit-instructions">
+                    Selecciona los movimientos que tiene tu Pokémon en el juego
+                  </p>
+
+                  @if (loadingMoves) {
+                    <p class="loading-moves-edit">Cargando movimientos disponibles...</p>
+                  } @else {
+                    <div class="moves-inputs">
+                      @for (moveSlot of [0, 1, 2, 3]; track $index) {
+                        <div class="move-input-group">
+                          <label>
+                            Movimiento {{ $index + 1 }}
+                            @if (tempMoves[$index]) {
+                              <button 
+                                (click)="clearMoveSlot($index)" 
+                                class="clear-slot"
+                                type="button"
+                                title="Limpiar"
+                              >
+                                ✕
+                              </button>
+                            }
+                          </label>
+                          <select 
+                            [(ngModel)]="tempMoves[$index]" 
+                            class="move-select"
+                          >
+                            <option value="">-- Seleccionar --</option>
+                            
+                            @if (getMovesByMethod('level-up').length > 0) {
+                              <optgroup label="📊 Por Nivel ({{ getMovesByMethod('level-up').length }})">
+                                @for (move of getMovesByMethod('level-up'); track move.name) {
+                                  <option [value]="move.name">
+                                    {{ move.name | titlecase }}@if (move.level) { - Nv. {{ move.level }}}
+                                  </option>
+                                }
+                              </optgroup>
+                            }
+                            
+                            @if (getMovesByMethod('machine').length > 0) {
+                              <optgroup label="💿 MT/MO ({{ getMovesByMethod('machine').length }})">
+                                @for (move of getMovesByMethod('machine'); track move.name) {
+                                  <option [value]="move.name">
+                                    {{ move.name | titlecase }}
+                                  </option>
+                                }
+                              </optgroup>
+                            }
+                            
+                            @if (getMovesByMethod('egg').length > 0) {
+                              <optgroup label="🥚 Movimiento Huevo ({{ getMovesByMethod('egg').length }})">
+                                @for (move of getMovesByMethod('egg'); track move.name) {
+                                  <option [value]="move.name">
+                                    {{ move.name | titlecase }}
+                                  </option>
+                                }
+                              </optgroup>
+                            }
+                            
+                            @if (getMovesByMethod('tutor').length > 0) {
+                              <optgroup label="🎓 Tutor ({{ getMovesByMethod('tutor').length }})">
+                                @for (move of getMovesByMethod('tutor'); track move.name) {
+                                  <option [value]="move.name">
+                                    {{ move.name | titlecase }}
+                                  </option>
+                                }
+                              </optgroup>
+                            }
+                          </select>
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  <div class="moves-edit-buttons">
+                    <button (click)="saveMoves()" class="btn-save-moves" type="button">
+                      <span class="btn-icon">✓</span>
+                      Guardar
+                    </button>
+                    <button (click)="cancelEditingMoves()" class="btn-cancel-moves" type="button">
+                      <span class="btn-icon">✕</span>
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+
+
             <!-- Movimientos -->
             <div class="moves-section">
               <h4>Movimientos Disponibles</h4>

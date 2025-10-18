@@ -144,7 +144,6 @@ export class PokemonTeamsService {
         this.teamsSubject.next(filteredTeams);
       }),
       catchError(error => {
-        console.error('Error al eliminar equipo:', error);
         // Si es 401, el equipo se eliminó pero el token expiró
         if (error.status === 401) {
           const teams = this.teamsSubject.value;
@@ -208,13 +207,11 @@ export class PokemonTeamsService {
       `${this.apiUrl}/teams/${teamId}/load-for-training`, 
       {}
     ).pipe(
-      tap(response => {
-        console.log('Equipo cargado para entrenamiento:', response);
+      tap(() => {
         // Guardar el ID del equipo que está siendo entrenado
         localStorage.setItem('currentTrainingTeamId', teamId.toString());
       }),
       catchError(error => {
-        console.error('Error al cargar equipo para training:', error);
         throw error;
       })
     );
@@ -226,11 +223,10 @@ export class PokemonTeamsService {
       `${this.apiUrl}/teams/${teamId}/update-evs`,
       { updated_members: updatedMembers }
     ).pipe(
-      tap(response => {
-        console.log('EVs del equipo actualizados:', response);
+      tap(() => {
+        // EVs actualizados exitosamente
       }),
       catchError(error => {
-        console.error('Error al actualizar EVs:', error);
         throw error;
       })
     );
@@ -266,7 +262,6 @@ export class PokemonTeamsService {
         }
       }),
       catchError(error => {
-        console.error('Error al actualizar nickname:', error);
         throw error;
       })
     );
@@ -291,7 +286,50 @@ export class PokemonTeamsService {
         }
       }),
       catchError(error => {
-        console.error('Error al actualizar nivel:', error);
+        throw error;
+      })
+    );
+  }
+
+  updateTeamMemberMoves(
+    teamId: number, 
+    memberId: number, 
+    moves: {
+      move_1?: string;
+      move_2?: string;
+      move_3?: string;
+      move_4?: string;
+    }
+  ): Observable<any> {
+    return this.http.patch(
+      `${this.apiUrl}/teams/${teamId}/members/${memberId}/moves`,
+      moves
+    ).pipe(
+      tap(() => {
+        // Actualizar localmente
+        const teams = this.teamsSubject.value;
+        const teamIndex = teams.findIndex(t => t.id === teamId);
+        if (teamIndex !== -1) {
+          const memberIndex = teams[teamIndex].team_members.findIndex(m => m.id === memberId);
+          if (memberIndex !== -1) {
+            // Actualizar cada movimiento si está presente
+            if (moves.move_1 !== undefined) {
+              teams[teamIndex].team_members[memberIndex].move_1 = moves.move_1 || undefined;
+            }
+            if (moves.move_2 !== undefined) {
+              teams[teamIndex].team_members[memberIndex].move_2 = moves.move_2 || undefined;
+            }
+            if (moves.move_3 !== undefined) {
+              teams[teamIndex].team_members[memberIndex].move_3 = moves.move_3 || undefined;
+            }
+            if (moves.move_4 !== undefined) {
+              teams[teamIndex].team_members[memberIndex].move_4 = moves.move_4 || undefined;
+            }
+            this.teamsSubject.next([...teams]);
+          }
+        }
+      }),
+      catchError(error => {
         throw error;
       })
     );

@@ -338,10 +338,9 @@ export class Team implements OnInit, OnDestroy {
                     '¡Equipo Guardado!'
                   );
                 },
-                error: (error) => {
+                error: () => {
                   this.loading = false;
                   this.loadingService.hide();
-                  console.error('Error al guardar equipo:', error);
                   this.modalService.showError('Error al guardar el equipo. Intenta de nuevo.', 'Error');
                 }
               })
@@ -362,10 +361,9 @@ export class Team implements OnInit, OnDestroy {
                     '¡Equipo Guardado!'
                   );
                 },
-                error: (error) => {
+                error: () => {
                   this.loading = false;
                   this.loadingService.hide();
-                  console.error('Error al guardar equipo:', error);
                   this.modalService.showError('Error al guardar el equipo. Intenta de nuevo.', 'Error');
                 }
               })
@@ -398,20 +396,20 @@ export class Team implements OnInit, OnDestroy {
     // Limpiar equipo
     this.teamService.clearTeam().subscribe({
       next: () => {
-        console.log('Equipo actual limpiado');
+        // Equipo limpiado exitosamente
       },
-      error: (error) => {
-        console.error('Error al limpiar equipo:', error);
+      error: () => {
+        // Error al limpiar equipo
       }
     });
 
     // Limpiar sesiones de training
     this.trainingService.clearAllSessions().subscribe({
       next: () => {
-        console.log('Sesiones de training limpiadas');
+        // Sesiones limpiadas exitosamente
       },
-      error: (error) => {
-        console.error('Error al limpiar sesiones de training:', error);
+      error: () => {
+        // Error al limpiar sesiones
       }
     });
   }

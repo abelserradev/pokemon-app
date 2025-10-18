@@ -64,7 +64,6 @@ export class Training implements OnInit, OnDestroy {
       ).subscribe((event: any) => {
         // Solo recargar si estamos en la ruta de entrenamiento
         if (event.url === '/entrenamiento') {
-          console.log('Recargando datos de entrenamiento por navegación');
           this.loadTrainingData();
         }
       })
@@ -127,27 +126,21 @@ export class Training implements OnInit, OnDestroy {
   }
 
   private loadTeamAndSessions(): void {
-    console.log('🔄 Cargando equipo y sesiones...');
-    
     // Limpiar cache antes de cargar datos frescos
     this.teamService.clearCache();
     this.trainingService.clearCache();
     
     this.teamService.loadTeam().subscribe({
       next: (team) => {
-        console.log('✅ Equipo cargado:', team);
         this.teamPokemon = team;
         if (team.length > 0) {
-          console.log(`📊 Inicializando sesiones para ${team.length} Pokémon`);
           this.initializeTrainingSessions();
         } else {
-          console.log('⚠️ No hay Pokémon en el equipo');
           this.trainingSessions = [];
           this.currentSession = null;
         }
       },
-      error: (error) => {
-        console.error('❌ Error al cargar equipo:', error);
+      error: () => {
         this.teamPokemon = [];
         this.trainingSessions = [];
         this.currentSession = null;
@@ -156,36 +149,27 @@ export class Training implements OnInit, OnDestroy {
   }
 
   private initializeTrainingSessions(): void {
-    console.log('🔄 Cargando sesiones de entrenamiento...');
-    
     this.subscriptions.add(
       this.trainingService.loadTrainingSessions().subscribe({
         next: () => {
           const transformedSessions = this.trainingService.currentSessions;
-          console.log('📋 Todas las sesiones cargadas:', transformedSessions);
-
           const currentTeamIds = this.teamPokemon.map(p => p.pokemon_id);
-          console.log('🎯 IDs del equipo actual:', currentTeamIds);
           
           const validSessions = transformedSessions.filter(session =>
             currentTeamIds.includes(session.pokemonId)
           );
-          console.log('✅ Sesiones válidas encontradas:', validSessions);
 
           this.trainingSessions = validSessions;
 
           if (validSessions.length > 0) {
             this.currentSession = validSessions[0];
             this.currentPokemonIndex = 0;
-            console.log('🎮 Sesión actual establecida:', this.currentSession);
           } else {
             this.currentSession = null;
             this.currentPokemonIndex = 0;
-            console.log('⚠️ No hay sesiones válidas');
           }
         },
-        error: (error) => {
-          console.error('❌ Error al cargar sesiones:', error);
+        error: () => {
           this.trainingSessions = [];
           this.currentSession = null;
           this.currentPokemonIndex = 0;
@@ -326,10 +310,9 @@ export class Training implements OnInit, OnDestroy {
     // Actualizar el equipo guardado en el backend
     this.teamsService.updateTeamEVs(teamId, updatedMembers).subscribe({
       next: () => {
-        console.log('EVs del equipo guardado actualizados exitosamente');
+        // EVs actualizados exitosamente
       },
-      error: (err) => {
-        console.error('Error al actualizar EVs del equipo guardado:', err);
+      error: () => {
         // No mostrar error al usuario, es una operación secundaria
       }
     });

@@ -187,8 +187,6 @@ export class PokemonTeams implements OnInit, OnDestroy {
 
     this.teamsService.loadTeamForTraining(team.id).subscribe({
       next: (response) => {
-        console.log('Equipo cargado para training:', response);
-        
         this.loading = false;
         this.loadingService.hide();
         
@@ -205,7 +203,6 @@ export class PokemonTeams implements OnInit, OnDestroy {
       error: (error) => {
         this.loading = false;
         this.loadingService.hide();
-        console.error('Error al cargar equipo:', error);
         
         let errorMessage = 'Error al cargar el equipo para entrenamiento.';
         if (error.status === 404) {

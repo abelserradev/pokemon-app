@@ -80,7 +80,9 @@ export class PokemonService {
           id: index + 1
         }));
       },
-      error: (error) => console.error('Error loading pokemon names:', error)
+      error: () => {
+        // Error al cargar nombres de Pokémon
+      }
     });
   }
 

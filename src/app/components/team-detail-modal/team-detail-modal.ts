@@ -41,6 +41,9 @@ export class TeamDetailModalComponent implements OnInit {
   editingLevel = false;
   tempLevel = 50;
 
+  editingMoves = false;
+  tempMoves: string[] = ['', '', '', ''];
+
   constructor(
     private pokemonService: PokemonService,
     private teamsService: PokemonTeamsService,
@@ -253,7 +256,97 @@ export class TeamDetailModalComponent implements OnInit {
         this.modalService.showError(error.error?.detail || 'Error al actualizar el nivel');
         this.cancelEditingLevel();
       }
+    });  
+  }
+
+  startEditingMoves(): void {
+    if (!this.selectedPokemon) return;
+    this.editingMoves = true;
+    this.tempMoves = [
+      this.selectedPokemon.move_1 || '',
+      this.selectedPokemon.move_2 || '',
+      this.selectedPokemon.move_3 || '',
+      this.selectedPokemon.move_4 || ''
+    ];
+  }
+
+  saveMoves(): void {
+    if (!this.selectedPokemon || !this.team || !this.team.id) {
+      this.cancelEditingMoves();
+      return;
+    }
+
+    // Validar que al menos haya un movimiento
+    const validMoves = this.tempMoves.filter(move => move.trim() !== '');
+    if (validMoves.length === 0) {
+      this.modalService.showError('Debes ingresar al menos un movimiento');
+      return;
+    }
+
+    // Construir el objeto de movimientos en el formato correcto
+    const movesData = {
+      move_1: this.tempMoves[0]?.trim() || undefined,
+      move_2: this.tempMoves[1]?.trim() || undefined,
+      move_3: this.tempMoves[2]?.trim() || undefined,
+      move_4: this.tempMoves[3]?.trim() || undefined
+    };
+
+    // Actualizar los movimientos en el backend
+    this.teamsService.updateTeamMemberMoves(
+      this.team.id,
+      this.selectedPokemon.id,
+      movesData
+    ).subscribe({
+      next: () => {
+        // Actualizar localmente solo después de éxito
+        if (this.selectedPokemon) {
+          this.selectedPokemon.move_1 = this.tempMoves[0] || undefined;
+          this.selectedPokemon.move_2 = this.tempMoves[1] || undefined;
+          this.selectedPokemon.move_3 = this.tempMoves[2] || undefined;
+          this.selectedPokemon.move_4 = this.tempMoves[3] || undefined;
+        }
+        this.editingMoves = false;
+        this.modalService.showSuccess('Movimientos actualizados correctamente');
+      },
+      error: (error: any) => {
+        this.modalService.showError(error.error?.detail || 'Error al actualizar los movimientos');
+        this.cancelEditingMoves();
+      }
     });
+  }
+
+  getMoveNameForSlot(index: number): string {
+    if (!this.selectedPokemon) return 'Vacío';
+    
+    const moves = [
+      this.selectedPokemon.move_1,
+      this.selectedPokemon.move_2,
+      this.selectedPokemon.move_3,
+      this.selectedPokemon.move_4
+    ];
+    
+    return moves[index] || 'Vacío';
+  }
+
+  hasMoves(): boolean {
+    if (!this.selectedPokemon) return false;
+    
+    return !!(
+      this.selectedPokemon.move_1 ||
+      this.selectedPokemon.move_2 ||
+      this.selectedPokemon.move_3 ||
+      this.selectedPokemon.move_4
+    );
+  }
+
+
+  cancelEditingMoves(): void {
+    this.editingMoves = false;
+    this.tempMoves = ['', '', '', ''];
+  }
+
+  clearMoveSlot(index: number): void {
+    this.tempMoves[index] = '';
   }
 }
 
