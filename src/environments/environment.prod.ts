@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://apipokemon.buildforge.work/api'
+  apiUrl: 'https://apipokemon.buildforge.work/api'
 };
