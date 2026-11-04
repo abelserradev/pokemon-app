@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TrainingSession, TrainingForm, TrainingValidation, PokemonStats } from '../shared/interfaces';
 import { Pokemon } from './pokemon.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,7 @@ export class TrainingService {
   private readonly MAX_EV_PER_STAT = 252;
   private readonly MAX_TOTAL_EVS = 510;
   private readonly POINTS_PER_EV = 4;
-  private apiUrl = 'http://localhost:8000/api/pokemon';
+  private apiUrl = `${environment.apiUrl}/pokemon`;
 
   private trainingSessionsSubject = new BehaviorSubject<TrainingSession[]>([]);
   public trainingSessions$ = this.trainingSessionsSubject.asObservable();
@@ -23,43 +24,39 @@ export class TrainingService {
 
   constructor(private http: HttpClient) {}
 
+  // Limpiar cache y forzar recarga
+  clearCache(): void {
+    this.trainingSessionsSubject.next([]);
+  }
+
   // Helper para obtener valores de stats con cualquier formato
   private getStat(stats: any, key: string): number {
     if (!stats) {
-      console.log(`getStat: stats is null/undefined for key ${key}`);
       return 0;
     }
 
-    console.log(`getStat: Buscando '${key}' en:`, stats);
-
     // 1. Intentar con la key exacta primero
     if (stats[key] !== undefined) {
-      console.log(`  → Encontrado con key exacta: ${stats[key]}`);
       return stats[key];
     }
 
     // 2. Intentar con guión (backend format: special-attack)
     const dashKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
     if (stats[dashKey] !== undefined) {
-      console.log(`  → Encontrado con dashKey '${dashKey}': ${stats[dashKey]}`);
       return stats[dashKey];
     }
 
     // 3. Intentar formato snake_case sin guión
     const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
     if (stats[snakeKey] !== undefined) {
-      console.log(`  → Encontrado con snakeKey '${snakeKey}': ${stats[snakeKey]}`);
       return stats[snakeKey];
     }
 
-    console.log(`  → No encontrado, retornando 0`);
     return 0;
   }
 
   // Transformar sesión del backend al formato frontend
   private transformSession(s: any): TrainingSession {
-    console.log('========== TRANSFORMANDO SESIÓN ==========');
-    console.log('Datos originales del backend:', s);
 
     const baseStats: PokemonStats = {
       hp: this.getStat(s.base_stats, 'hp'),
@@ -102,9 +99,6 @@ export class TrainingService {
       completedAt: s.completed_at ? new Date(s.completed_at) : undefined
     };
 
-    console.log('Sesión transformada:', transformed);
-    console.log('==========================================');
-
     return transformed;
   }
 
@@ -112,11 +106,7 @@ export class TrainingService {
   loadTrainingSessions(): Observable<TrainingSession[]> {
     return this.http.get<any[]>(`${this.apiUrl}/training`).pipe(
       tap(sessions => {
-        console.log('Sesiones recibidas del backend:', sessions);
-
         const transformedSessions: TrainingSession[] = sessions.map(s => this.transformSession(s));
-
-        console.log('Sesiones transformadas:', transformedSessions);
         this.trainingSessionsSubject.next(transformedSessions);
       })
     );
@@ -158,11 +148,8 @@ export class TrainingService {
       training_points: this.MAX_TOTAL_EVS
     };
 
-    console.log('Creando sesión con datos:', sessionData);
-
     return this.http.post<any>(`${this.apiUrl}/training`, sessionData).pipe(
       tap((session: any) => {
-        console.log('Sesión creada por backend:', session);
         const transformedSession = this.transformSession(session);
 
         const currentSessions = this.trainingSessionsSubject.value;
@@ -263,22 +250,15 @@ export class TrainingService {
 
     return this.http.put<any>(`${this.apiUrl}/training/${sessionId}`, updateData).pipe(
       tap((updatedSession: any) => {
-        console.log('========== APLICAR ENTRENAMIENTO ==========');
-        console.log('Respuesta del backend:', updatedSession);
-
         const transformedSession = this.transformSession(updatedSession);
-        console.log('Sesión transformada:', transformedSession);
 
         const sessions = this.trainingSessionsSubject.value;
         const index = sessions.findIndex(s => s.id === sessionId);
-        console.log('Índice de sesión:', index);
 
         if (index !== -1) {
           sessions[index] = transformedSession;
           this.trainingSessionsSubject.next([...sessions]);
-          console.log('BehaviorSubject actualizado con sesiones:', sessions);
         }
-        console.log('==========================================');
       })
     );
   }
@@ -315,6 +295,31 @@ export class TrainingService {
         const sessions = this.trainingSessionsSubject.value;
         const filteredSessions = sessions.filter(s => s.id !== sessionId);
         this.trainingSessionsSubject.next(filteredSessions);
+      })
+    );
+  }
+
+  // Resetear entrenamiento por ID de Pokémon
+  resetTrainingForPokemon(pokemonId: number): Observable<any> {
+    const sessions = this.trainingSessionsSubject.value;
+    const sessionToDelete = sessions.find(s => s.pokemonId === pokemonId);
+    
+    if (sessionToDelete && sessionToDelete.id) {
+      return this.resetTraining(sessionToDelete.id);
+    } else {
+      // Si no hay sesión, devolver observable vacío
+      return new Observable(observer => {
+        observer.next(null);
+        observer.complete();
+      });
+    }
+  }
+
+  // Limpiar todas las sesiones de training
+  clearAllSessions(): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/training/clear-all`).pipe(
+      tap(() => {
+        this.trainingSessionsSubject.next([]);
       })
     );
   }

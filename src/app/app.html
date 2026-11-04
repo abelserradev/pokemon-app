@@ -14,3 +14,19 @@
 </main>
 
 <app-footer></app-footer>
+
+<!-- Modal Global -->
+@if (modalConfig$ | async; as modalConfig) {
+  <app-modal
+    [isVisible]="modalConfig.isVisible"
+    [title]="modalConfig.title"
+    [message]="modalConfig.message"
+    [type]="modalConfig.type"
+    [showCancelButton]="modalConfig.showCancelButton"
+    [confirmText]="modalConfig.confirmText"
+    [cancelText]="modalConfig.cancelText"
+    (confirmed)="onModalConfirm()"
+    (cancelled)="onModalCancel()"
+    (closed)="onModalClose()">
+  </app-modal>
+}

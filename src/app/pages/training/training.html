@@ -16,6 +16,12 @@
   <div class="training-header">
     <h1>Centro de Entrenamiento Pokemon</h1>
     <p>Entrena a tu equipo para maximizar sus estadísticas con EVs</p>
+    @if (isTrainingSavedTeam) {
+      <div class="saved-team-indicator">
+        <span class="indicator-icon">📁</span>
+        <span>Entrenando equipo guardado: <strong>{{ savedTeamName }}</strong></span>
+      </div>
+    }
   </div>
 
   @if (teamPokemon.length === 0) {
@@ -39,7 +45,7 @@
             [class.trained]="isPokemonTrained(i)"
             (click)="goToPokemon(i)"
           >
-            <img [src]="session.pokemonSprite" [alt]="session.pokemonName" />
+            <img [src]="session.pokemonSprite || '/favicon.ico'" [alt]="session.pokemonName || 'Pokémon'" />
             <span class="pokemon-name">{{ session.pokemonName | titlecase }}</span>
             @if (isPokemonTrained(i)) {
               <span class="trained-badge">✓</span>
@@ -56,7 +62,7 @@
         <div class="pokemon-info-section">
           <div class="pokemon-card">
             <div class="pokemon-sprite">
-              <img [src]="currentSession.pokemonSprite" [alt]="currentSession.pokemonName" />
+              <img [src]="currentSession.pokemonSprite || '/favicon.ico'" [alt]="currentSession.pokemonName || 'Pokémon'" />
             </div>
             <div class="pokemon-details">
               <h2>{{ currentSession.pokemonName | titlecase }}</h2>

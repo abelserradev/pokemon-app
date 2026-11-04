@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Pokemon } from './pokemon.service';
+import { environment } from '../../environments/environment';
 
 export interface TeamPokemon {
   id?: number;
@@ -10,6 +11,8 @@ export interface TeamPokemon {
   pokemon_name: string;
   pokemon_sprite: string;
   selected_ability: string;
+  nickname?: string;
+  level?: number;
   added_at?: string;
   pokemon?: Pokemon;
 }
@@ -18,29 +21,33 @@ export interface TeamPokemon {
   providedIn: 'root'
 })
 export class TeamService {
-  private apiUrl = 'http://localhost:8000/api/pokemon';
+  private apiUrl = `${environment.apiUrl}/pokemon`;
   private teamSubject = new BehaviorSubject<any[]>([]);
   public team$ = this.teamSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
+  // Limpiar cache y forzar recarga
+  clearCache(): void {
+    this.teamSubject.next([]);
+  }
+
   loadTeam(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/team`).pipe(
       tap(team => {
-        console.log('Equipo cargado:', team);
         this.teamSubject.next(team);
       })
     );
   }
 
-  addToTeam(pokemon: Pokemon, selectedAbility: string): Observable<any> {
+  addToTeam(pokemon: Pokemon, selectedAbility: string, level: number = 50): Observable<any> {
     const teamPokemon = {
       pokemon_id: pokemon.id,
       pokemon_name: pokemon.name,
       pokemon_sprite: pokemon.sprites.front_default || pokemon.sprites?.other?.['official-artwork']?.front_default,
-      pokemon_types: pokemon.types?.map((t: any) => t.type.name), // Tipos del pokémon
+      pokemon_types: pokemon.types?.map((t: any) => t.type.name),
       selected_ability: selectedAbility,
-      level: 1,
+      level: level,  // Usar el nivel proporcionado
       base_stats: {
         hp: pokemon.stats[0].base_stat,
         attack: pokemon.stats[1].base_stat,
@@ -51,16 +58,14 @@ export class TeamService {
       }
     };
 
-    console.log('Enviando pokémon al backend:', teamPokemon);
-
     return this.http.post<any>(`${this.apiUrl}/team`, teamPokemon).pipe(
       tap(newPokemon => {
-        console.log('Pokémon agregado por backend:', newPokemon);
         const currentTeam = this.teamSubject.value;
         const enrichedPokemon = {
           ...newPokemon,
           pokemon: pokemon,
-          selectedAbility: selectedAbility
+          selectedAbility: selectedAbility,
+          level: level
         };
         this.teamSubject.next([...currentTeam, enrichedPokemon]);
       })
@@ -68,34 +73,45 @@ export class TeamService {
   }
 
   removeFromTeam(teamPokemonId: number): Observable<any> {
-    console.log('Servicio: Eliminando pokémon con ID de BD:', teamPokemonId);
-
     return this.http.delete(`${this.apiUrl}/team/${teamPokemonId}`).pipe(
       tap(() => {
-        console.log('DELETE exitoso, actualizando estado local');
         const currentTeam = this.teamSubject.value;
         const updatedTeam = currentTeam.filter(p => p.id !== teamPokemonId);
-        console.log('Equipo actualizado:', updatedTeam);
         this.teamSubject.next(updatedTeam);
       })
     );
   }
 
-  updateAbility(pokemonId: number, ability: string): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/team/${pokemonId}/ability`, { ability }).pipe(
-      tap(updatedPokemon => {
-        const currentTeam = this.teamSubject.value;
-        const index = currentTeam.findIndex(p => p.pokemon_id === pokemonId);
-        if (index !== -1) {
-          currentTeam[index] = {
-            ...currentTeam[index],
-            selected_ability: ability,
-            selectedAbility: ability
-          };
-          this.teamSubject.next([...currentTeam]);
-        }
+  // Limpiar todo el equipo actual
+  clearTeam(): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/team/clear-all`).pipe(
+      tap(() => {
+        this.teamSubject.next([]);
       })
     );
+  }
+
+  updateAbility(teamPokemonId: number, ability: string): Observable<any> {
+    const currentTeam = this.teamSubject.value;
+    const index = currentTeam.findIndex(p => p.id === teamPokemonId);
+
+    if (index !== -1) {
+      currentTeam[index] = {
+        ...currentTeam[index],
+        selected_ability: ability,
+        selectedAbility: ability
+      };
+      this.teamSubject.next([...currentTeam]);
+
+      return new Observable(observer => {
+        observer.next(currentTeam[index]);
+        observer.complete();
+      });
+    } else {
+      return new Observable(observer => {
+        observer.error(new Error(`No se encontró el Pokémon con ID: ${teamPokemonId}`));
+      });
+    }
   }
 
   getCurrentTeam(): any[] {

@@ -30,13 +30,11 @@ export class Auth {
     private http: HttpClient,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
-    // Solo verificar localStorage en el navegador
     if (isPlatformBrowser(this.platformId)) {
       const token = this.getToken();
       if (token) {
         this.getUserProfile().subscribe({
           error: () => {
-            // Si hay error al obtener el perfil, limpiar el token
             this.removeToken();
           }
         });
@@ -51,11 +49,14 @@ export class Auth {
   }
 
   login(user: any): Observable<LoginResponse> {
-    const formData = new FormData();
-    formData.append('username', user.email);
-    formData.append('password', user.password);
-
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, formData).pipe(
+    // Usar el nuevo endpoint /login/json que acepta JSON
+    return this.http.post<LoginResponse>(
+      `${this.apiUrl}/login/json`,
+      {
+        email: user.email,
+        password: user.password
+      }
+    ).pipe(
       tap(response => {
         this.setToken(response.access_token);
         this.currentUserSubject.next(response.user);
@@ -115,7 +116,6 @@ export class Auth {
   }
 
   private handleError(error: any): Observable<never> {
-    console.error('Error en la petición:', error);
     return throwError(() => error);
   }
 }

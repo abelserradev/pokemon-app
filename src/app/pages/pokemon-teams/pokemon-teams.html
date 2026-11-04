@@ -1,0 +1,107 @@
+<div class="pokemon-teams-page">
+    <!-- Loading -->
+    @if (loadingState$ | async; as loadingState) {
+      @if (loadingState.isLoading && !loadingState.showOverlay) {
+        <div class="teams-loading">
+          <app-loading
+            [message]="loadingState.message || 'Cargando...'"
+            [subMessage]="loadingState.subMessage || 'Preparando equipos'"
+            [showOverlay]="false">
+          </app-loading>
+        </div>
+      }
+    }
+  
+    <!-- Header -->
+    <div class="teams-header">
+      <h1>Mis Equipos Pokémon</h1>
+      <p>Gestiona y organiza tus equipos entrenados</p>
+    </div>
+  
+  
+    <!-- Lista de equipos -->
+    <div class="teams-list">
+      @if (teams.length === 0) {
+        <div class="empty-teams">
+          <div class="empty-icon">
+            <img src="/logo_entrenamiento.png" alt="Logo">
+          </div>
+          <h2>No tienes equipos guardados</h2>
+          <p>Crea tu primer equipo desde Pokémon entrenados</p>
+        </div>
+      } @else {
+      <div class="teams-grid">
+        @for (team of teams; track team.id) {
+          <div 
+            class="team-card" 
+            [class]="getTeamStatusClass(team)"
+            (click)="openTeamDetail(team)"
+          >
+            <div class="team-header">
+              <h3>{{ team.team_name }}</h3>
+              <div class="team-actions" (click)="$event.stopPropagation()">
+                  <button 
+                    class="btn-toggle-status"
+                    (click)="toggleTeamStatus(team)"
+                    [title]="team.is_favorite ? 'Desmarcar como favorito' : 'Marcar como favorito'"
+                    type="button"
+                  >
+                    {{ getTeamStatusText(team) }}
+                  </button>
+                  <button 
+                    class="btn-delete"
+                    (click)="deleteTeam(team)"
+                    title="Eliminar equipo"
+                    type="button"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+  
+              @if (team.description) {
+                <p class="team-description">{{ team.description }}</p>
+              }
+  
+              <div class="team-pokemon">
+                <h4>Pokémon ({{ team.team_members.length }}/6)</h4>
+                <div class="pokemon-grid">
+                  @for (pokemon of team.team_members; track pokemon.id) {
+                    <div class="pokemon-item">
+                      <img [src]="pokemon.pokemon_sprite || '/favicon.ico'" [alt]="pokemon.pokemon_name" />
+                      <h5>{{ pokemon.nickname || (pokemon.pokemon_name | titlecase) }}</h5>
+                      <div class="pokemon-types">
+                        @for (type of pokemon.pokemon_types || []; track type) {
+                          <span class="type-badge" [class]="'type-' + type">
+                            {{ type }}
+                          </span>
+                        }
+                      </div>
+                      <div class="pokemon-stats">
+                        <small>Nivel {{ pokemon.level }}</small>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+  
+              <div class="team-footer">
+                <small>Creado: {{ team.created_at | date:'short' }}</small>
+                @if (team.updated_at && team.updated_at !== team.created_at) {
+                  <small>Actualizado: {{ team.updated_at | date:'short' }}</small>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+<!-- Modal de detalles del equipo -->
+<app-team-detail-modal
+  [team]="selectedTeam"
+  [isVisible]="showDetailModal"
+  (closed)="closeTeamDetail()"
+  (trainTeam)="trainTeam($event)">
+</app-team-detail-modal>
