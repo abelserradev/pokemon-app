@@ -9,7 +9,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM nginx:1.27-alpine-slim AS production
+FROM nginx:1.30.7-alpine-slim AS production
 
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/pokemon-app/browser /usr/share/nginx/html
