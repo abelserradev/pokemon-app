@@ -1,5 +1,4 @@
 <div class="team-page">
-  <!-- Loading local para búsquedas -->
   @if (loadingState$ | async; as loadingState) {
     @if (loadingState.isLoading && !loadingState.showOverlay) {
       <div class="local-loading">
@@ -13,31 +12,29 @@
   }
 
   <div class="team-container">
-    <!-- Título -->
     <div class="team-header">
       <h1>Mi Equipo Pokemon</h1>
       <p>Construye tu equipo perfecto (máximo 6 Pokemon)</p>
     </div>
 
-
-    <!-- Botones de gestión de equipos -->
     <div class="team-management-buttons">
-      <button 
-        class="btn-save-team" 
+      <button
+        class="btn-save-team"
+        type="button"
         (click)="saveCurrentTeam()"
         [disabled]="!canSaveTeam()"
       >
         Guardar Equipo
       </button>
-      <button 
-        class="btn-view-teams" 
+      <button
+        class="btn-view-teams"
+        type="button"
         (click)="goToTeams()"
       >
         Equipos
       </button>
     </div>
 
-    <!-- Barra de búsqueda -->
     <div class="search-section">
       <div class="search-container">
         <input
@@ -48,105 +45,103 @@
           (blur)="closeSuggestions()"
           placeholder="Busca un Pokemon por nombre..."
           class="search-input"
-          (keyup.enter)="searchPokemon()"
+          role="combobox"
+          aria-autocomplete="list"
+          [attr.aria-expanded]="showSuggestions"
+          aria-controls="pokemon-suggestions"
+          [attr.aria-activedescendant]="activeSuggestionIndex >= 0 ? 'suggestion-' + activeSuggestionIndex : null"
         />
         @if (searchTerm) {
-          <button 
-            (click)="clearSearch()" 
+          <button
+            (click)="clearSearch()"
             class="clear-button"
             type="button"
+            aria-label="Limpiar búsqueda"
           >
             ✕
           </button>
         }
-        <button 
+        <button
           class="search-btn"
           (click)="searchPokemon()"
           [disabled]="loading"
           type="button"
+          aria-label="Buscar Pokemon"
         >
-        @if (loading) {
-          <div class="spinner-small"></div>
-
-        } @else {
-          🔍
-        }
+          @if (loading) {
+            <div class="spinner-small" aria-hidden="true"></div>
+          } @else {
+            🔍
+          }
         </button>
         @if (showSuggestions && searchSuggestions.length > 0) {
-          <div class="suggestions-dropdown">
-            @for (suggestion of searchSuggestions; track suggestion.id) {
-              <div 
+          <ul
+            id="pokemon-suggestions"
+            class="suggestions-dropdown"
+            role="listbox"
+          >
+            @for (suggestion of searchSuggestions; track suggestion.id; let i = $index) {
+              <li
+                [id]="'suggestion-' + i"
+                role="option"
                 class="suggestion-item"
+                [class.suggestion-item--active]="i === activeSuggestionIndex"
+                [attr.aria-selected]="i === activeSuggestionIndex"
                 (mousedown)="selectSuggestion(suggestion)"
               >
                 <span class="suggestion-id">#{{ suggestion.id }}</span>
                 <span class="suggestion-name">{{ suggestion.name | titlecase }}</span>
-              </div>
+              </li>
             }
-          </div>
+          </ul>
         }
       </div>
     </div>
 
-    <!-- Pokemon encontrado -->
     @if (searchedPokemon) {
       <div class="searched-pokemon">
-        <div class="pokemon-card">
-          <div class="pokemon-sprite">
-            <img [src]="searchedPokemon.sprites.front_default" [alt]="searchedPokemon.name" />
-          </div>
-          <div class="pokemon-info">
-            <h3 class="pokemon-name">{{ searchedPokemon.name | titlecase }}</h3>
-            <div class="pokemon-types">
-              @for (type of searchedPokemon.types; track type.type.name) {
-                <span class="type-badge" [class]="'type-' + type.type.name">
-                  {{ type.type.name }}
-                </span>
-              }
-            </div>
-            
-            <!-- Selector de nivel -->
-            <div class="level-selector">
-              <label for="pokemonLevel">Nivel:</label>
-              <input
-                type="number"
-                id="pokemonLevel"
-                [(ngModel)]="pokemonLevel"
-                min="1"
-                max="100"
-                step="1"
-                class="level-input"
-                (blur)="validateLevel()"
-              />
-            </div>
-          </div>
+        <app-holo-pokemon-card
+          [name]="searchedPokemon.name"
+          [pokemonId]="searchedPokemon.id"
+          [artworkUrl]="artworkForSearch(searchedPokemon)"
+          [spriteUrl]="searchedPokemon.sprites.front_default"
+          [types]="typesForSearch(searchedPokemon)"
+          size="lg"
+        />
+
+        <div class="level-selector">
+          <label for="pokemonLevel">Nivel:</label>
+          <input
+            type="number"
+            id="pokemonLevel"
+            [(ngModel)]="pokemonLevel"
+            min="1"
+            max="100"
+            step="1"
+            class="level-input"
+            (blur)="validateLevel()"
+          />
         </div>
 
-        <!-- Botón de agregar -->
         <div class="action-buttons">
           <button
             class="btn-add"
+            type="button"
             (click)="addToTeam()"
-            [disabled]="teamPokemon.length >= maxTeamSize"
+            [disabled]="!canAddSearched"
           >
-            @if (teamPokemon.length >= maxTeamSize) {
-              Equipo Lleno
-            } @else {
-              Agregar al Equipo
-            }
+            {{ addButtonLabel }}
           </button>
         </div>
       </div>
     }
 
-    <!-- Mensaje de error -->
     @if (error) {
-      <div class="error-message">
+      <div class="error-message" role="alert">
         {{ error }}
       </div>
     }
 
-    <!-- Equipo actual -->
     <div class="team-section">
       <h2>Mi Equipo ({{ teamPokemon.length }}/{{ maxTeamSize }})</h2>
 
@@ -157,98 +152,27 @@
       } @else {
         <div class="team-grid">
           @for (teamPoke of teamPokemon; track teamPoke.id || teamPoke.pokemon_id) {
-            @if (teamPoke.pokemon) {
-              <div class="team-pokemon-item">
-                <!-- Cyber Card para sprite y tipos -->
-                <div class="cyber-card-container noselect">
-                  <div class="cyber-canvas">
-                    <!-- Trackers completos para cubrir toda la card -->
-                    <div class="tracker tr-1"></div>
-                    <div class="tracker tr-2"></div>
-                    <div class="tracker tr-3"></div>
-                    <div class="tracker tr-4"></div>
-                    <div class="tracker tr-5"></div>
-                    <div class="tracker tr-6"></div>
-                    <div class="tracker tr-7"></div>
-                    <div class="tracker tr-8"></div>
-                    <div class="tracker tr-9"></div>
-                    <div class="tracker tr-10"></div>
-                    <div class="tracker tr-11"></div>
-                    <div class="tracker tr-12"></div>
-                    <div class="tracker tr-13"></div>
-                    <div class="tracker tr-14"></div>
-                    <div class="tracker tr-15"></div>
-                    <div class="tracker tr-16"></div>
-                    <div class="tracker tr-17"></div>
-                    <div class="tracker tr-18"></div>
-                    <div class="tracker tr-19"></div>
-                    <div class="tracker tr-20"></div>
-                    <div class="tracker tr-21"></div>
-                    <div class="tracker tr-22"></div>
-                    <div class="tracker tr-23"></div>
-                    <div class="tracker tr-24"></div>
-                    <div class="tracker tr-25"></div>
+            <div class="team-pokemon-item">
+              <app-holo-pokemon-card
+                [name]="teamPoke.pokemon?.name || teamPoke.pokemon_name || 'Pokémon'"
+                [pokemonId]="teamPoke.pokemon_id"
+                [artworkUrl]="artworkForMember(teamPoke)"
+                [spriteUrl]="teamPoke.pokemon?.sprites?.front_default || teamPoke.pokemon_sprite || null"
+                [types]="typesForMember(teamPoke)"
+                size="md"
+              />
 
-                    <div class="cyber-card">
-                      <div class="card-content">
-                        <div class="card-glare"></div>
-                        <div class="cyber-lines">
-                          <span></span><span></span><span></span><span></span>
-                        </div>
-
-                        <!-- Pokemon Sprite -->
-                        <div class="pokemon-sprite">
-                          <img 
-                            [src]="teamPoke.pokemon?.sprites?.front_default || '/favicon.ico'" 
-                            [alt]="teamPoke.pokemon?.name || 'Pokémon'" 
-                          />
-                        </div>
-
-                        <!-- Pokemon Info -->
-                        <div class="pokemon-info">
-                          <h3 class="pokemon-name">{{ (teamPoke.pokemon?.name || 'Pokémon') | titlecase }}</h3>
-                          <div class="pokemon-types">
-                            @for (type of teamPoke.pokemon?.types || []; track type.type.name) {
-                              <span class="type-badge" [class]="'type-' + type.type.name">
-                                {{ type.type.name }}
-                              </span>
-                            }
-                          </div>
-                        </div>
-
-                        <div class="glowing-elements">
-                          <div class="glow-1"></div>
-                          <div class="glow-2"></div>
-                          <div class="glow-3"></div>
-                        </div>
-
-                        <div class="card-particles">
-                          <span></span><span></span><span></span>
-                          <span></span><span></span><span></span>
-                        </div>
-
-                        <div class="corner-elements">
-                          <span></span><span></span><span></span><span></span>
-                        </div>
-
-                        <div class="scan-line"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Controles fuera de la card -->
-                <div class="pokemon-controls">
-                  <!-- Ability Selector -->
+              <div class="pokemon-controls">
+                @if (teamPoke.pokemon?.abilities?.length) {
                   <div class="ability-selector">
-                    <label for="ability-{{ teamPoke.pokemon.id }}">Habilidad:</label>
+                    <label [attr.for]="'ability-' + teamPoke.pokemon_id">Habilidad:</label>
                     <select
-                      id="ability-{{ teamPoke.pokemon.id }}"
+                      [id]="'ability-' + teamPoke.pokemon_id"
                       [(ngModel)]="teamPoke.selectedAbility"
                       (change)="onAbilityChange(teamPoke.id, teamPoke.selectedAbility)"
                       class="ability-select"
                     >
-                      @for (ability of teamPoke.pokemon.abilities; track ability.ability.name) {
+                      @for (ability of teamPoke.pokemon!.abilities; track ability.ability.name) {
                         <option [value]="ability.ability.name">
                           {{ ability.ability.name | titlecase }}
                           @if (ability.is_hidden) {
@@ -258,22 +182,22 @@
                       }
                     </select>
                   </div>
+                }
 
-                  <!-- Remove Button con estilo cyber -->
-                  <div class="cyber-button-container">
-                    <button
-                      class="cyber-button"
-                      (click)="removeFromTeam(teamPoke.id)"
-                      type="button"
-                    >
-                      <a>
-                        <span>Eliminar</span>
-                      </a>
-                    </button>
-                  </div>
+                <div class="cyber-button-container">
+                  <button
+                    class="cyber-button"
+                    type="button"
+                    (click)="removeFromTeam(teamPoke.id!)"
+                    [disabled]="teamPoke.id == null"
+                  >
+                    <span class="cyber-button__label">
+                      <span>Eliminar</span>
+                    </span>
+                  </button>
                 </div>
               </div>
-            }
+            </div>
           }
         </div>
       }
