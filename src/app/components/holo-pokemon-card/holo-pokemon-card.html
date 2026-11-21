@@ -1,0 +1,47 @@
+<article
+  [class]="'holo-card ' + sizeClass"
+  [attr.aria-label]="'Carta holográfica de ' + (name | titlecase)"
+>
+  <div class="holo-card__stage" [class.holo-card__stage--busy]="loadState === 'loading'">
+    <canvas
+      #canvasHost
+      class="holo-card__canvas"
+      role="img"
+      [attr.aria-hidden]="true"
+    ></canvas>
+
+    @if (loadState === 'loading') {
+      <div class="holo-card__status" aria-live="polite">
+        <span class="holo-card__spinner" aria-hidden="true"></span>
+        <span>Cargando carta…</span>
+      </div>
+    }
+
+    @if (loadState === 'error' || loadState === 'empty') {
+      <div class="holo-card__fallback" role="status">
+        @if (spriteUrl || artworkUrl) {
+          <img
+            [src]="spriteUrl || artworkUrl || ''"
+            [alt]="name | titlecase"
+            class="holo-card__fallback-img"
+          />
+        }
+        <p class="holo-card__fallback-msg">
+          {{ errorMessage || 'No se pudo mostrar la carta 3D' }}
+        </p>
+      </div>
+    }
+  </div>
+
+  <div class="holo-card__hud">
+    <h3 class="holo-card__name">{{ name | titlecase }}</h3>
+    @if (pokemonId) {
+      <span class="holo-card__id">#{{ pokemonId }}</span>
+    }
+    <div class="holo-card__types" aria-label="Tipos">
+      @for (type of types; track type) {
+        <span class="type-badge" [class]="'type-' + type">{{ type }}</span>
+      }
+    </div>
+  </div>
+</article>

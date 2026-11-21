@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+# Keep push proportional: production build catches TS/template errors without karma.
+npm run build

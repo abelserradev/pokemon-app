@@ -4,50 +4,44 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Pokemon } from './pokemon.service';
 import { environment } from '../../environments/environment';
+import { TeamPokemonItem } from '../shared/team-pokemon.types';
 
-export interface TeamPokemon {
-  id?: number;
-  pokemon_id: number;
-  pokemon_name: string;
-  pokemon_sprite: string;
-  selected_ability: string;
-  nickname?: string;
-  level?: number;
-  added_at?: string;
-  pokemon?: Pokemon;
-}
+/** @deprecated Prefer TeamPokemonItem — kept for existing imports. */
+export type TeamPokemon = TeamPokemonItem;
 
 @Injectable({
   providedIn: 'root'
 })
 export class TeamService {
   private apiUrl = `${environment.apiUrl}/pokemon`;
-  private teamSubject = new BehaviorSubject<any[]>([]);
+  private teamSubject = new BehaviorSubject<TeamPokemonItem[]>([]);
   public team$ = this.teamSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
-  // Limpiar cache y forzar recarga
   clearCache(): void {
     this.teamSubject.next([]);
   }
 
-  loadTeam(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/team`).pipe(
-      tap(team => {
+  loadTeam(): Observable<TeamPokemonItem[]> {
+    return this.http.get<TeamPokemonItem[]>(`${this.apiUrl}/team`).pipe(
+      tap((team) => {
         this.teamSubject.next(team);
       })
     );
   }
 
-  addToTeam(pokemon: Pokemon, selectedAbility: string, level: number = 50): Observable<any> {
+  addToTeam(pokemon: Pokemon, selectedAbility: string, level: number = 50): Observable<TeamPokemonItem> {
+    const official = pokemon.sprites?.other?.['official-artwork']?.front_default;
+    // Persist artwork separately so GET /team can drive holo cards without re-hitting PokeAPI.
     const teamPokemon = {
       pokemon_id: pokemon.id,
       pokemon_name: pokemon.name,
-      pokemon_sprite: pokemon.sprites.front_default || pokemon.sprites?.other?.['official-artwork']?.front_default,
-      pokemon_types: pokemon.types?.map((t: any) => t.type.name),
+      pokemon_sprite: pokemon.sprites.front_default || official,
+      pokemon_artwork: official || null,
+      pokemon_types: pokemon.types?.map((t) => t.type.name),
       selected_ability: selectedAbility,
-      level: level,  // Usar el nivel proporcionado
+      level,
       base_stats: {
         hp: pokemon.stats[0].base_stat,
         attack: pokemon.stats[1].base_stat,
@@ -58,32 +52,31 @@ export class TeamService {
       }
     };
 
-    return this.http.post<any>(`${this.apiUrl}/team`, teamPokemon).pipe(
-      tap(newPokemon => {
+    return this.http.post<TeamPokemonItem>(`${this.apiUrl}/team`, teamPokemon).pipe(
+      tap((newPokemon) => {
         const currentTeam = this.teamSubject.value;
-        const enrichedPokemon = {
+        const enrichedPokemon: TeamPokemonItem = {
           ...newPokemon,
-          pokemon: pokemon,
-          selectedAbility: selectedAbility,
-          level: level
+          pokemon,
+          selectedAbility,
+          selected_ability: selectedAbility,
+          level
         };
         this.teamSubject.next([...currentTeam, enrichedPokemon]);
       })
     );
   }
 
-  removeFromTeam(teamPokemonId: number): Observable<any> {
+  removeFromTeam(teamPokemonId: number): Observable<unknown> {
     return this.http.delete(`${this.apiUrl}/team/${teamPokemonId}`).pipe(
       tap(() => {
-        const currentTeam = this.teamSubject.value;
-        const updatedTeam = currentTeam.filter(p => p.id !== teamPokemonId);
+        const updatedTeam = this.teamSubject.value.filter((p) => p.id !== teamPokemonId);
         this.teamSubject.next(updatedTeam);
       })
     );
   }
 
-  // Limpiar todo el equipo actual
-  clearTeam(): Observable<any> {
+  clearTeam(): Observable<unknown> {
     return this.http.delete(`${this.apiUrl}/team/clear-all`).pipe(
       tap(() => {
         this.teamSubject.next([]);
@@ -91,30 +84,32 @@ export class TeamService {
     );
   }
 
-  updateAbility(teamPokemonId: number, ability: string): Observable<any> {
+  updateAbility(teamPokemonId: number, ability: string): Observable<TeamPokemonItem> {
     const currentTeam = this.teamSubject.value;
-    const index = currentTeam.findIndex(p => p.id === teamPokemonId);
+    const index = currentTeam.findIndex((p) => p.id === teamPokemonId);
 
-    if (index !== -1) {
-      currentTeam[index] = {
-        ...currentTeam[index],
-        selected_ability: ability,
-        selectedAbility: ability
-      };
-      this.teamSubject.next([...currentTeam]);
-
-      return new Observable(observer => {
-        observer.next(currentTeam[index]);
-        observer.complete();
-      });
-    } else {
-      return new Observable(observer => {
+    if (index === -1) {
+      return new Observable((observer) => {
         observer.error(new Error(`No se encontró el Pokémon con ID: ${teamPokemonId}`));
       });
     }
+
+    const updated: TeamPokemonItem = {
+      ...currentTeam[index],
+      selected_ability: ability,
+      selectedAbility: ability
+    };
+    const next = [...currentTeam];
+    next[index] = updated;
+    this.teamSubject.next(next);
+
+    return new Observable((observer) => {
+      observer.next(updated);
+      observer.complete();
+    });
   }
 
-  getCurrentTeam(): any[] {
+  getCurrentTeam(): TeamPokemonItem[] {
     return this.teamSubject.value;
   }
 }

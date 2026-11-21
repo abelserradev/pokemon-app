@@ -68,6 +68,12 @@ export interface PokemonTeamMemberResponse {
   pokemon_name: string;
   pokemon_sprite?: string;
   pokemon_types?: string[];
+  /** Optional companion-backend fields — tolerate absence. */
+  pokemon_artwork?: string | null;
+  card_presentation?: {
+    artwork_url?: string | null;
+    foil_style?: string | null;
+  } | null;
   nickname?: string;
   level: number;
   selected_ability?: string;
