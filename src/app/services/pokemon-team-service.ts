@@ -3,12 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { PokemonTeam, PokemonTeamCreate, PokemonTeamUpdate, PokemonTeamMemberCreate } from '../shared/interfaces';
+import { TeamPokemonItem } from '../shared/team-pokemon.types';
 import { environment } from '../../environments/environment';
 
 interface LoadForTrainingResponse {
   message: string;
-  team_loaded: any;
-  sessions_created: any[];
+  team_loaded: PokemonTeam | Record<string, unknown>;
+  sessions_created: Array<Record<string, unknown>>;
 }
 
 @Injectable({
@@ -39,15 +40,15 @@ export class PokemonTeamsService {
   }
 
   // Crear equipo desde el equipo actual del componente team
-  createTeamFromCurrentTeam(teamPokemon: any[]): Observable<PokemonTeam> {
+  createTeamFromCurrentTeam(teamPokemon: TeamPokemonItem[]): Observable<PokemonTeam> {
     const teamName = this.generateTeamName();
     
     // Mapear los Pokémon del equipo actual al formato del backend
     const teamMembers: PokemonTeamMemberCreate[] = teamPokemon.map((p, index) => ({
       pokemon_id: p.pokemon_id,
-      pokemon_name: p.pokemon?.name || 'unknown',
-      pokemon_sprite: p.pokemon?.sprites?.front_default,
-      pokemon_types: p.pokemon?.types?.map((t: any) => t.type.name),
+      pokemon_name: p.pokemon?.name || p.pokemon_name || 'unknown',
+      pokemon_sprite: p.pokemon?.sprites?.front_default || p.pokemon_sprite || undefined,
+      pokemon_types: p.pokemon?.types?.map((t) => t.type.name) ?? p.pokemon_types ?? undefined,
       selected_ability: p.selected_ability,
       position: index + 1,
       level: p.level || 50,

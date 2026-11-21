@@ -63,7 +63,7 @@ export class PokemonComponent implements OnInit, OnDestroy {
         if (gen !== this.selectedGeneration) {
           this.selectedGeneration = gen;
           this.currentPage = 1;
-          this.loadPokemon();
+          void this.loadPokemon();
         }
       })
     );
@@ -72,13 +72,12 @@ export class PokemonComponent implements OnInit, OnDestroy {
       this.cacheService.getCurrentPage().subscribe(page => {
         if (page !== this.currentPage) {
           this.currentPage = page;
-          this.loadPokemon();
+          void this.loadPokemon();
         }
       })
     );
 
-    // Cargar datos iniciales
-    this.loadPokemon();
+    void this.loadPokemon();
   }
 
   ngOnDestroy(): void {
@@ -111,10 +110,14 @@ export class PokemonComponent implements OnInit, OnDestroy {
     const gen = this.generations.find(g => g.number === this.selectedGeneration);
     if (!gen) return;
 
-    // Verificar si existe en caché
+    // Probe PokeAPI count before trusting durable pages (invalidates when new species appear).
+    await this.cacheService.ensureFreshness();
+    this.syncGenerationBoundsFromApiCount();
+
+    const totalInGen = gen.end - gen.start + 1;
     if (this.cacheService.hasPokemon(this.selectedGeneration, this.currentPage)) {
       this.pokemonList = this.cacheService.getPokemon(this.selectedGeneration, this.currentPage)!;
-      this.calculateTotalPages(gen.end - gen.start + 1);
+      this.calculateTotalPages(totalInGen);
       return;
     }
 
@@ -131,6 +134,7 @@ export class PokemonComponent implements OnInit, OnDestroy {
         (_, i) => startId + i
       );
 
+      // getPokemonById hits durable/memory cache per id — only misses hit the network.
       const pokemonPromises = pokemonIds.map(id =>
         firstValueFrom(
           this.pokemonService.getPokemonById(id).pipe(
@@ -140,20 +144,28 @@ export class PokemonComponent implements OnInit, OnDestroy {
       );
 
       const results = await Promise.all(pokemonPromises);
-      this.pokemonList = results.filter(p => p !== null) as Pokemon[];
+      this.pokemonList = results.filter((p): p is Pokemon => p !== null);
 
-      // Guardar en caché
       this.cacheService.setPokemon(this.selectedGeneration, this.currentPage, this.pokemonList);
-
-      this.calculateTotalPages(gen.end - gen.start + 1);
-
-      // Trackear los primeros 3 Pokémon visibles
+      this.calculateTotalPages(totalInGen);
       this.trackVisiblePokemon();
     } catch (error) {
       this.error = 'Error al cargar los Pokemon';
     } finally {
       this.loading = false;
       this.loadingService.hide();
+    }
+  }
+
+  /** Extend Gen 9 upper bound when PokeAPI count grows beyond the static table. */
+  private syncGenerationBoundsFromApiCount(): void {
+    const apiCount = this.cacheService.getKnownApiCount();
+    if (!apiCount || apiCount <= 1025) {
+      return;
+    }
+    const gen9 = this.generations.find((g) => g.number === 9);
+    if (gen9 && gen9.end < apiCount) {
+      gen9.end = apiCount;
     }
   }
   onSearchInput(): void {

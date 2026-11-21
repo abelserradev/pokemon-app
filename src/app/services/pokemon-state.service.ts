@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Pokemon } from './pokemon.service';
+import { Pokemon } from '../models/pokemon.model';
+import { PokemonCacheService } from './pokemon-cache.service';
 
 export interface PokemonState {
   selectedGeneration: number;
@@ -10,7 +11,7 @@ export interface PokemonState {
   error: string | null;
   totalPages: number;
   totalPokemonInGeneration: number;
-  loadedPages: Set<number>; // Para trackear qué páginas ya están cargadas
+  loadedPages: Set<number>;
 }
 
 @Injectable({
@@ -31,19 +32,18 @@ export class PokemonStateService {
   private stateSubject = new BehaviorSubject<PokemonState>(this.initialState);
   public state$ = this.stateSubject.asObservable();
 
-  // Getters para acceder al estado actual
+  constructor(private readonly pokemonCache: PokemonCacheService) {}
+
   get currentState(): PokemonState {
     return this.stateSubject.value;
   }
 
-  // Actualizar estado
   private updateState(updates: Partial<PokemonState>) {
     const currentState = this.stateSubject.value;
     const newState = { ...currentState, ...updates };
     this.stateSubject.next(newState);
   }
 
-  // Métodos para manejar el estado
   setLoading(loading: boolean) {
     this.updateState({ loading, error: null });
   }
@@ -91,20 +91,16 @@ export class PokemonStateService {
     return this.currentState.loadedPages.has(page);
   }
 
-  // Cache de Pokemon por página
-  private pokemonCache = new Map<string, Pokemon[]>();
-
+  /** Delegate page cache to PokemonCacheService — single invalidation strategy. */
   cachePokemonForPage(generation: number, page: number, pokemonList: Pokemon[]) {
-    const key = `${generation}-${page}`;
-    this.pokemonCache.set(key, pokemonList);
+    this.pokemonCache.setPokemon(generation, page, pokemonList);
   }
 
   getCachedPokemon(generation: number, page: number): Pokemon[] | undefined {
-    const key = `${generation}-${page}`;
-    return this.pokemonCache.get(key);
+    return this.pokemonCache.getPokemon(generation, page) ?? undefined;
   }
 
   clearCache() {
-    this.pokemonCache.clear();
+    this.pokemonCache.clearCache();
   }
 }
