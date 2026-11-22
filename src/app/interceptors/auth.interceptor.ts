@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const platformId = inject(PLATFORM_ID);
@@ -18,21 +19,21 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       // Clonar la petición y agregar el header de autorización
       const authReq = req.clone({
         setHeaders: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       return next(authReq).pipe(
         catchError((error: HttpErrorResponse) => {
-          if (error.status === 401) {
-            // Token expirado o inválido - limpiar y redirigir
+          // With bypassAuth, keep the page mounted so UI can soft-fail (empty team / PokeAPI search).
+          if (error.status === 401 && !environment.bypassAuth) {
             if (isPlatformBrowser(platformId)) {
               localStorage.removeItem('token');
               router.navigate(['/login']);
             }
           }
           return throwError(() => error);
-        })
+        }),
       );
     }
   }
