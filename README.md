@@ -28,12 +28,14 @@ Aplicación web moderna para gestionar equipos Pokemon, entrenar y optimizar las
 ## ✨ Características
 
 ### 🔐 Autenticación y Seguridad
+
 - Sistema de registro y login con JWT
 - Protección de rutas mediante guards
 - Interceptores HTTP para manejo automático de tokens
 - Gestión segura de sesiones con localStorage
 
 ### 👥 Gestión de Equipos
+
 - Búsqueda de Pokemon desde la PokeAPI
 - Crear equipos de hasta 6 Pokemon
 - Visualización de estadísticas base
@@ -42,6 +44,7 @@ Aplicación web moderna para gestionar equipos Pokemon, entrenar y optimizar las
 - Persistencia en base de datos SQL
 
 ### 🎯 Sistema de Entrenamiento EV
+
 - Asignación de EVs (Effort Values) por estadística
 - Validación de límites (252 por stat, 510 total)
 - Visualización de progreso en tiempo real
@@ -50,6 +53,7 @@ Aplicación web moderna para gestionar equipos Pokemon, entrenar y optimizar las
 - Sistema de guardado automático
 
 ### ⭐ Favoritos Inteligentes
+
 - Tracking automático de Pokemon visualizados
 - Algoritmo de relevancia basado en:
   - Historial de búsquedas
@@ -58,6 +62,7 @@ Aplicación web moderna para gestionar equipos Pokemon, entrenar y optimizar las
 - Visualización de top 5 favoritos en el footer
 
 ### 🎨 Interfaz de Usuario
+
 - Diseño responsive (móvil, tablet, desktop)
 - Menú hamburguesa para móviles
 - Sistema de loading con animaciones
@@ -65,6 +70,7 @@ Aplicación web moderna para gestionar equipos Pokemon, entrenar y optimizar las
 - Navegación intuitiva entre generaciones
 
 ### 🚀 Optimizaciones
+
 - Lazy loading de módulos
 - Caché de Pokemon para mejorar rendimiento
 - Gestión eficiente de estado con RxJS
@@ -74,6 +80,7 @@ Aplicación web moderna para gestionar equipos Pokemon, entrenar y optimizar las
 ## 🛠 Tecnologías
 
 ### Frontend
+
 - **Angular 20.1** - Framework principal
 - **TypeScript 5.8** - Lenguaje de programación
 - **RxJS 7.8** - Programación reactiva
@@ -81,16 +88,19 @@ Aplicación web moderna para gestionar equipos Pokemon, entrenar y optimizar las
 - **Angular Router** - Navegación SPA
 
 ### Backend
+
 - **FastAPI** - Framework Python para API REST
 - **MySQL** - Base de datos relacional
 - **SQLAlchemy** - ORM
 - **JWT** - Autenticación con tokens
 
 ### APIs Externas
+
 - **PokeAPI** - Datos de Pokemon
 - **Railway** - Hosting del backend
 
 ### DevOps
+
 - **Vercel** - Deployment del frontend
 - **GitHub** - Control de versiones
 - **Angular CLI** - Herramientas de desarrollo
@@ -130,7 +140,7 @@ Para obtener la apariencia completa del proyecto, descarga e instala la fuente P
 
 1. Ve a: https://www.fontspace.com/pokemon-solid-font-f13844
 2. Descarga el archivo ZIP de la fuente
-3. Extrae el archivo `.ttf` 
+3. Extrae el archivo `.ttf`
 4. Copia el archivo a `public/fonts/PokemonSolid.ttf`
 
 Para más detalles, consulta `public/fonts/README.md`
@@ -144,7 +154,9 @@ Crear archivo `src/environments/environment.ts`:
 ```typescript
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8000'
+  apiUrl: "http://localhost:8000/api",
+  // DEV only: skip login guard so /equipo works without backend
+  bypassAuth: true,
 };
 ```
 
@@ -153,9 +165,12 @@ Crear archivo `src/environments/environment.prod.ts`:
 ```typescript
 export const environment = {
   production: true,
-  apiUrl: 'https://tu-backend.railway.app'
+  apiUrl: "https://tu-backend.railway.app",
+  bypassAuth: false,
 };
 ```
+
+Con `bypassAuth: true` (solo desarrollo), el `authGuard` deja pasar sin token y el interceptor no redirige a `/login` en 401. En producción (`fileReplacements`) debe quedar en `false`.
 
 ### 4. Iniciar servidor de desarrollo
 
@@ -194,14 +209,14 @@ El proyecto usa la nueva configuración de `application builder` de Angular 20:
 ```typescript
 // app.routes.ts
 export const routes: Routes = [
-  { path: '', redirectTo: '/home', pathMatch: 'full' },
-  { path: 'home', component: Home },
-  { path: 'pokemon', component: PokemonComponent },
-  { path: 'equipo', component: Team, canActivate: [authGuard] },
-  { path: 'entrenamiento', component: Training, canActivate: [authGuard] },
-  { path: 'login', component: Login },
-  { path: 'register', component: Register },
-  { path: '**', redirectTo: '/home' }
+  { path: "", redirectTo: "/home", pathMatch: "full" },
+  { path: "home", component: Home },
+  { path: "pokemon", component: PokemonComponent },
+  { path: "equipo", component: Team, canActivate: [authGuard] },
+  { path: "entrenamiento", component: Training, canActivate: [authGuard] },
+  { path: "login", component: Login },
+  { path: "register", component: Register },
+  { path: "**", redirectTo: "/home" },
 ];
 ```
 
@@ -340,9 +355,9 @@ User Action → Component → Service → HTTP → Backend
 ### Autenticación
 
 ```typescript
-POST   /register              // Registro de usuario
-POST   /login                 // Inicio de sesión
-GET    /user/profile          // Perfil del usuario
+POST / register; // Registro de usuario
+POST / login; // Inicio de sesión
+GET / user / profile; // Perfil del usuario
 ```
 
 ### Equipo Pokemon
@@ -566,6 +581,7 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 ## 👨‍💻 Autor
 
 **Abel Serra**
+
 - GitHub: [@abelserradev](https://github.com/abelserradev)
 - LinkedIn: [Abel Serra](https://www.linkedin.com/in/abeljserraz)
 
